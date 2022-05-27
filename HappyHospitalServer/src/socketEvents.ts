@@ -9,6 +9,8 @@ export const events = {
   tellClientAutoAgvsOverlapped: 'tell-client-auto-agvs-overlapped',
   tellClientLoadedDataFromVadere: 'tell-client-loaded-data-from-vadere',
   userLoadedDataFromVadere: 'user-loaded-data-from-vadere',
+
+  sendAgentPathToClient: 'send-agent-path-to-client',
 }
 
 export const gameObjectType = {

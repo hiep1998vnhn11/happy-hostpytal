@@ -9,6 +9,8 @@ export const events = {
   tellClientAutoAgvsOverlapped: 'tell-client-auto-agvs-overlapped',
   tellClientLoadedDataFromVadere: 'tell-client-loaded-data-from-vadere',
   userLoadedDataFromVadere: 'user-loaded-data-from-vadere',
+
+  sendAgentPathToClient: 'send-agent-path-to-client',
 }
 
 import { Agent } from './classes/agent'
@@ -18,7 +20,6 @@ import { AutoAgv } from './classes/AutoAgv'
 
 const serverUrl = 'http://localhost:3009'
 export const socket = io(serverUrl)
-socket.emit(events.newClient) // vi du ket noi client va socket
 export const localSocketId = socket.id
 
 // socket.on(events.sendClientPosition, (serverPlayersPos) => {
@@ -39,31 +40,18 @@ export const gameObjectType = {
   agent: 'AGENT',
 }
 
-interface movingGameObject {
+interface MovingGameObject {
   x: number
   y: number
   width: number
   height: number
   serverId: string
   gameObjectType: string
+  gameObjectAttrs?: any
 }
 
-export function sendGameObjectToServer({
-  x,
-  y,
-  width,
-  height,
-  serverId,
-  gameObjectType,
-}: movingGameObject) {
-  socket.emit(events.sendGameObjectToServer, {
-    x,
-    y,
-    width,
-    height,
-    serverId,
-    gameObjectType,
-  })
+export function sendGameObjectToServer(movingGameObject: MovingGameObject) {
+  socket.emit(events.sendGameObjectToServer, movingGameObject)
 }
 
 export function deleteAgentOnServer(serverId: string) {

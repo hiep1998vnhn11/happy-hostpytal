@@ -1,9 +1,11 @@
+import { Position } from './classes copy/position'
 import { Socket } from 'socket.io'
 import { Player } from './classes/Player'
 import { Physic } from './classes/Physic'
 import * as socketEvents from './socketEvents'
 import express from 'express'
 import cors from 'cors'
+import { GameObject } from './classes/GameObject'
 
 const app = express()
 
@@ -36,10 +38,19 @@ let overlappedAutoAgvs: {
 }[] = []
 
 io.on('connection', (socket: Socket) => {
-  socket.on(socketEvents.events.newClient, () => {
-    console.log('new client connected!, with id: ', socket.id)
-    players[socket.id] = new Player()
-  })
+  socket.on(
+    socketEvents.events.newClient,
+    ({
+      groundPos,
+      doorPos,
+    }: {
+      groundPos: Position[]
+      doorPos: Position[]
+    }) => {
+      console.log('new client connected!, with id: ', socket.id)
+      players[socket.id] = new Player(groundPos, doorPos)
+    }
+  )
 
   socket.on(socketEvents.events.disconnect, () => {
     delete players[socket.id]
@@ -62,25 +73,13 @@ io.on('connection', (socket: Socket) => {
     // players[socket.id].updateControl(userCommand);
   })
 
-  socket.on(socketEvents.events.sendGameObjectToServer, (gameObject) => {
-    if (!players[socket.id]) return
-
-    const x = gameObject?.x
-    const y = gameObject?.y
-    const width = gameObject?.width
-    const height = gameObject?.height
-    const serverId = gameObject?.serverId
-    const gameObjectType = gameObject?.gameObjectType
-
-    players[socket.id].addGameObject({
-      x: x,
-      y: y,
-      width: width,
-      height: height,
-      serverId: serverId,
-      gameObjectType: gameObjectType,
-    })
-  })
+  socket.on(
+    socketEvents.events.sendGameObjectToServer,
+    (gameObject: GameObject) => {
+      if (!players[socket.id]) return
+      players[socket.id].addGameObject(gameObject, socket)
+    }
+  )
 
   socket.on(socketEvents.events.deleteAgentOnServer, (serverId: string) => {
     if (!players[socket.id]) return
@@ -96,7 +95,6 @@ io.on('connection', (socket: Socket) => {
       agentsInfo: { x: number; y: number; serverId: string }[]
     ) => {
       if (!players[socket.id]) return
-
       players[socket.id].updateAllGameObjects(agvInfo, autoAgvsInfo, agentsInfo)
 
       // check collide list of agvs with agents (only one main agv -- the player)
@@ -125,7 +123,7 @@ io.on('connection', (socket: Socket) => {
         )
       }
 
-      // console.log(JSON.stringify(overlappedAgv));
+      // console.log(JSON.stringify(overlappedAgv))
       // console.log(JSON.stringify(overlappedAutoAgvs));  // test player overlapped
     }
   )

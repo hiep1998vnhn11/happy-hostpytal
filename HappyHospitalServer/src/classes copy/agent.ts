@@ -14,7 +14,7 @@ export class Agent extends Actor {
   private vertexs: Position[]
   private endText: Text
   private agentText: Text
-  // private astar: Astar
+  private astar: Astar
   private next: number = 1
   private id: number
   public isOverlap: boolean = false
@@ -62,6 +62,10 @@ export class Agent extends Actor {
       id.toString()
     )
 
+    this.astar = new Astar(52, 28, startPos, endPos, groundPos)
+    this.vertexs = this.astar.cal() || []
+    // console.log(this.vertexs)
+
     // PHYSICS
     this.getBody().setSize(31, 31)
     this.setOrigin(0, 0)
@@ -76,16 +80,14 @@ export class Agent extends Actor {
       height: this.sizeHeight,
       serverId: this.serverId,
       gameObjectType: socketEvents.gameObjectType.agent,
-      gameObjectAttrs: {
-        id: this.id,
-        startPos: this.startPos,
-        endPos: this.endPos,
-      },
     })
+    // this.active = false
+    this.handleAvoid(
+      new Position(Math.floor(this.x / 32) - 1, Math.floor(this.y / 32))
+    )
   }
 
   public goToDestinationByVertexs() {
-    if (!this.vertexs.length) return
     if (this.avoiding) return
     if (this.next == this.vertexs.length) {
       this.agentText.setText('DONE')
@@ -172,33 +174,29 @@ export class Agent extends Actor {
     }
   }
 
-  // public handleAvoid(position: Position) {
-  //   if (this.next == this.vertexs.length) {
-  //     this.agentText.setText('DONE')
-  //     this.agentText.setFontSize(12)
-  //     this.agentText.setX(this.x - 1)
-  //     this.x = this.vertexs[this.vertexs.length - 1].x * 32
-  //     this.y = this.vertexs[this.vertexs.length - 1].y * 32
-  //     this.setVelocity(0, 0)
-  //     this.eliminate()
-  //     return
-  //   }
-  //   if (this.next + 1 == this.vertexs.length) return
-  //   const index = this.vertexs.findIndex(
-  //     (vertex) => vertex.x === position.x && vertex.y === position.y
-  //   )
-  //   this.avoiding = true
-  //   //When the barrier is not in the vertexs, continue to trajectory
-  //   if (index === -1) return
-  //   // this.scene.physics.moveTo(this, this.x + 32, this.y + 32, this.speed)
+  public handleAvoid(position: Position) {
+    if (this.next == this.vertexs.length) {
+      this.agentText.setText('DONE')
+      this.agentText.setFontSize(12)
+      this.agentText.setX(this.x - 1)
+      this.x = this.vertexs[this.vertexs.length - 1].x * 32
+      this.y = this.vertexs[this.vertexs.length - 1].y * 32
+      this.setVelocity(0, 0)
+      this.eliminate()
+      return
+    }
+    if (this.next + 1 == this.vertexs.length) return
+    const index = this.vertexs.findIndex(
+      (vertex) => vertex.x === position.x && vertex.y === position.y
+    )
+    this.avoiding = true
+    //When the barrier is not in the vertexs, continue to trajectory
+    if (index === -1) return
+    // this.scene.physics.moveTo(this, this.x + 32, this.y + 32, this.speed)
 
-  //   const avoidingPosition = this.astar.getAvoidPath(
-  //     position,
-  //     this.vertexs[this.next + 1]
-  //   )
-  // }
-
-  public setPath(path: Position[]) {
-    this.vertexs = path || []
+    const avoidingPosition = this.astar.getAvoidPath(
+      position,
+      this.vertexs[this.next + 1]
+    )
   }
 }

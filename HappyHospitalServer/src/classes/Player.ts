@@ -1,35 +1,38 @@
 import { Agent } from './Agent'
 import { Agv } from './Agv'
 import { AutoAgv } from './autoAgv'
-
-var socketEvents = require('../socketEvents')
+import { GameObject } from './GameObject'
+const socketEvents = require('../socketEvents')
+import { Position } from './position'
+import { Socket } from 'socket.io'
 
 export class Player {
   public agv: Agv
   public autoAgvs: AutoAgv[]
   public agents: Agent[]
+  public groundPos: Position[]
+  public doorPos: Position[]
 
-  constructor() {
+  constructor(groundPos: Position[], doorPos: Position[]) {
     this.agv = new Agv(0, 0, 0, 0, '')
     this.autoAgvs = []
     this.agents = []
+    this.groundPos = groundPos
+    this.doorPos = doorPos
   }
 
-  public addGameObject({
-    x,
-    y,
-    width,
-    height,
-    serverId,
-    gameObjectType,
-  }: {
-    x: number
-    y: number
-    width: number
-    height: number
-    serverId: string
-    gameObjectType: string
-  }) {
+  public addGameObject(
+    {
+      x,
+      y,
+      width,
+      height,
+      serverId,
+      gameObjectType,
+      gameObjectAttrs,
+    }: GameObject,
+    socket: Socket
+  ) {
     switch (gameObjectType) {
       case socketEvents.gameObjectType.agv:
         this.agv = new Agv(x, y, width, height, serverId)
@@ -38,7 +41,19 @@ export class Player {
         this.autoAgvs.push(new AutoAgv(x, y, width, height, serverId))
         break
       case socketEvents.gameObjectType.agent:
-        this.agents.push(new Agent(x, y, width, height, serverId))
+        if (gameObjectAttrs)
+          this.agents.push(
+            new Agent(
+              x,
+              y,
+              width,
+              height,
+              serverId,
+              gameObjectAttrs,
+              this.groundPos,
+              socket
+            )
+          )
         break
       default:
     }

@@ -61,14 +61,14 @@ export class MainScene extends Scene {
   private emergencyGraph?: EmergencyGraph
   private doorPos!: Position[]
   private timeText?: Phaser.GameObjects.Text
-  private sec: number = 0
+  public sec: number = 0
   public timeTable?: Phaser.GameObjects.Text
   private harmfulTable?: Phaser.GameObjects.Text
   private harmfulTableText?: Phaser.GameObjects.Text
   private _harmfullness: number = 0
   private agents!: Agent[]
   private rememberAgents: ImportAgent[] = []
-  private MAX_AGENT: number = 10
+  private MAX_AGENT: number = 1
   private desDom?: Phaser.GameObjects.DOMElement
   public mapOfExits: Map<string, number[]> = new Map([
     ['Gate1', [MainScene.EXIT_X, MainScene.EXIT_Y[0], 0]],
@@ -115,6 +115,10 @@ export class MainScene extends Scene {
     this.initMap()
     this.initTileMap()
     this.initGraph()
+    socketEvents.socket.emit(socketEvents.events.newClient, {
+      groundPos: this.groundPos,
+      doorPos: this.doorPos,
+    }) // vi du ket noi client va socket
     this.spaceGraph = new Graph(52, 28, this.listTile, this.pathPos)
     this.emergencyGraph = new EmergencyGraph(
       52,
@@ -155,7 +159,7 @@ export class MainScene extends Scene {
     }
     this.createRandomAutoAgv()
     this.events.on('destroyAgent', this.destroyAgentHandler, this)
-    this.createAgents(10, 1000)
+    this.createAgents(this.MAX_AGENT, 1000)
     this.physics.add.collider(this.agv, this.noPathLayer)
     this.openLinkInstruction()
 
@@ -168,7 +172,6 @@ export class MainScene extends Scene {
       .dom(1790, 240)
       .createFromCache('setNumAgentForm')
     setNumAgentsDOM.setPerspective(800)
-    // setNumAgentsDOM.setPosition()
     setNumAgentsDOM.addListener('click')
     setNumAgentsDOM.on('click', function (this: any, event: any) {
       if (event.target.id === 'submit') {
@@ -269,6 +272,16 @@ export class MainScene extends Scene {
         importAgents.forEach((agent) => {
           this.addAgent(agent)
         })
+      }
+    )
+
+    socketEvents.socket.on(
+      socketEvents.events.sendAgentPathToClient,
+      ({ vertexs, id }: { id: number; vertexs: Position[] }) => {
+        const index = this.agents.findIndex((agent) => agent.getId() === id)
+        if (index !== -1) {
+          this.agents[index].setPath(vertexs)
+        }
       }
     )
   }
