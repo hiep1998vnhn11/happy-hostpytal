@@ -68,7 +68,7 @@ export class MainScene extends Scene {
   private _harmfullness: number = 0
   private agents!: Agent[]
   private rememberAgents: ImportAgent[] = []
-  private MAX_AGENT: number = 1
+  private MAX_AGENT: number = 10
   private desDom?: Phaser.GameObjects.DOMElement
   public mapOfExits: Map<string, number[]> = new Map([
     ['Gate1', [MainScene.EXIT_X, MainScene.EXIT_Y[0], 0]],
