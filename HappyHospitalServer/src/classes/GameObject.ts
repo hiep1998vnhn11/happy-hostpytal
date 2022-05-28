@@ -11,6 +11,9 @@ export interface GameObject {
   serverId: string
   gameObjectType: GameObjectType
   gameObjectAttrs?: AgentObject | null
+  desX?: number
+  desY?: number
+  clientId?: string
 }
 
 export interface AgentObject {

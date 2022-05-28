@@ -84,6 +84,8 @@ export class Agv extends Actor {
       height: this.sizeHeight,
       serverId: '',
       gameObjectType: socketEvents.gameObjectType.agv,
+      desX: this.desX,
+      desY: this.desY,
     })
   }
 

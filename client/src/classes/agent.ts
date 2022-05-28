@@ -81,6 +81,7 @@ export class Agent extends Actor {
         startPos: this.startPos,
         endPos: this.endPos,
       },
+      clientId: this.id,
     })
   }
 

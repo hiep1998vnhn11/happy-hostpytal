@@ -14,7 +14,7 @@ export class Player {
   public doorPos: Position[]
 
   constructor(groundPos: Position[], doorPos: Position[]) {
-    this.agv = new Agv(0, 0, 0, 0, '', false)
+    this.agv = new Agv(0, 0, 0, 0, '', '', 0, 0)
     this.autoAgvs = []
     this.agents = []
     this.groundPos = groundPos
@@ -30,15 +30,29 @@ export class Player {
       serverId,
       gameObjectType,
       gameObjectAttrs,
+      desX,
+      desY,
+      clientId,
     }: GameObject,
     socket: Socket
   ) {
     switch (gameObjectType) {
       case socketEvents.gameObjectType.agv:
-        this.agv = new Agv(x, y, width, height, serverId, false)
+        this.agv = new Agv(
+          x,
+          y,
+          width,
+          height,
+          serverId,
+          '',
+          desX || 0,
+          desY || 0
+        )
         break
       case socketEvents.gameObjectType.autoAgv:
-        this.autoAgvs.push(new AutoAgv(x, y, width, height, serverId))
+        this.autoAgvs.push(
+          new AutoAgv(x, y, width, height, serverId, clientId || '')
+        )
         break
       case socketEvents.gameObjectType.agent:
         if (gameObjectAttrs)
@@ -51,7 +65,8 @@ export class Player {
               serverId,
               gameObjectAttrs,
               this.groundPos,
-              socket
+              socket,
+              clientId || ''
             )
           )
         break

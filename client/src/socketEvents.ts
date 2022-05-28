@@ -55,6 +55,9 @@ interface MovingGameObject {
   serverId: string
   gameObjectType: string
   gameObjectAttrs?: any
+  desX?: number
+  desY?: number
+  clientId?: number
 }
 
 export function sendGameObjectToServer(movingGameObject: MovingGameObject) {

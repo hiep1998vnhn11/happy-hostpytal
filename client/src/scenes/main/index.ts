@@ -233,7 +233,6 @@ export class MainScene extends Scene {
             }
           }
         })
-
         // agv handle overlapped
         this.agv.handleOverlap()
       }
@@ -439,7 +438,10 @@ export class MainScene extends Scene {
         elem.collidedActors.delete(agent)
       }
     })
-    socketEvents.socket.emit(socketEvents.events.deleteAgentOnServer)
+    socketEvents.socket.emit(socketEvents.events.deleteAgentOnServer, {
+      clientId: agent.getId(),
+      serverId: agent.serverId,
+    })
   }
 
   addButton(): void {
@@ -618,6 +620,10 @@ export class MainScene extends Scene {
                   agent.eliminate()
                 })
               }
+              socketEvents.socket.emit(
+                socketEvents.events.onClientLoadData,
+                this.mapData
+              )
               alert('Đã tải map thành công!')
             }
           }
@@ -633,7 +639,6 @@ export class MainScene extends Scene {
     document.body.appendChild(e)
     e.click()
     document.body.removeChild(e)
-    socketEvents.socket.emit(socketEvents.events.onClientLoadData, this.mapData)
   }
 
   private readVadereData(content: string): Record<string, string>[] | null {

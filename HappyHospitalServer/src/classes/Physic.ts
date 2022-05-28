@@ -1,5 +1,6 @@
 import { Agent } from './Agent'
 import { movingGameObject } from './movingGameObject'
+import { Agv } from './Agv'
 
 export class Physic {
   constructor() {}
@@ -95,7 +96,7 @@ export class Physic {
             ignoreAgent.add(agent.serverId)
             ignoreAgent.add(agent2.serverId)
             console.log(
-              `Agent ${agent.serverId} đã va chạm với agent ${agent2.serverId}`
+              `Agent ${agent.clientId} đã va chạm với agent ${agent2.clientId}`
             )
             overlappedPairAgents.push({
               agentServerId: agent.serverId,
@@ -108,8 +109,11 @@ export class Physic {
     return overlappedPairAgents
   }
 
-  public checkFinish(agv: movingGameObject) {
-    if (Math.floor(agv.x / 32) === 50 && agv.y / 32 > 13 && agv.y / 32 < 14) {
+  public checkFinish(agv: Agv) {
+    if (
+      Math.floor(agv.x / 32) === Math.floor(agv.desX / 32) &&
+      Math.floor(agv.y / 32) === Math.floor(agv.desY / 32)
+    ) {
       return true
     }
     return false

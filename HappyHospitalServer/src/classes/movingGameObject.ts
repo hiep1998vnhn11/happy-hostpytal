@@ -6,18 +6,21 @@ export class movingGameObject {
   public sizeHeight: number = 0
   public sizeWidth: number = 0
   public serverId: string = ''
+  public clientId: string = ''
 
   constructor(
     x: number,
     y: number,
     sizeWidth: number,
     sizeHeight: number,
-    serverId: string
+    serverId: string,
+    clientId: string
   ) {
     this.x = x
     this.y = y
     this.sizeWidth = sizeWidth
     this.sizeHeight = sizeHeight
     this.serverId = serverId
+    this.clientId = clientId
   }
 }

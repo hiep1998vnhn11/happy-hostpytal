@@ -81,12 +81,15 @@ io.on('connection', (socket: Socket) => {
     }
   )
 
-  socket.on(socketEvents.events.deleteAgentOnServer, (serverId: string) => {
-    if (!players[socket.id]) return
-    console.log(`Agent ${serverId} đã bị xoá khỏi màn chơi!`)
+  socket.on(
+    socketEvents.events.deleteAgentOnServer,
+    ({ serverId, clientId }: { serverId: string; clientId: string }) => {
+      if (!players[socket.id]) return
+      console.log(`Agent ${clientId} đã bị xoá khỏi màn chơi!`)
 
-    players[socket.id].deleteAgent(serverId)
-  })
+      players[socket.id].deleteAgent(serverId)
+    }
+  )
 
   socket.on(socketEvents.events.onChangeMaxAgent, (numAgent: string) => {
     if (!players[socket.id]) return

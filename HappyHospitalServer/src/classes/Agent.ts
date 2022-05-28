@@ -17,9 +17,10 @@ export class Agent extends movingGameObject {
     serverId: string,
     agentObject: AgentObject,
     groundPos: Position[],
-    socket: Socket
+    socket: Socket,
+    clientId
   ) {
-    super(x, y, sizeWidth, sizeHeight, serverId)
+    super(x, y, sizeWidth, sizeHeight, serverId, clientId)
     this.id = agentObject.id
     this.astar = new Astar(
       52,

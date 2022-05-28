@@ -6,8 +6,9 @@ export class AutoAgv extends movingGameObject {
     y: number,
     sizeWidth: number,
     sizeHeight: number,
-    serverId: string
+    serverId: string,
+    clientId: string
   ) {
-    super(x, y, sizeWidth, sizeHeight, serverId)
+    super(x, y, sizeWidth, sizeHeight, serverId, clientId)
   }
 }
