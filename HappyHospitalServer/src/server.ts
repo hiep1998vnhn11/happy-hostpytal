@@ -1,4 +1,4 @@
-import { Position } from './classes copy/position'
+import { Position } from './classes/position'
 import { Socket } from 'socket.io'
 import { Player } from './classes/Player'
 import { Physic } from './classes/Physic'
@@ -83,10 +83,27 @@ io.on('connection', (socket: Socket) => {
 
   socket.on(socketEvents.events.deleteAgentOnServer, (serverId: string) => {
     if (!players[socket.id]) return
+    console.log(`Agent ${serverId} đã bị xoá khỏi màn chơi!`)
 
     players[socket.id].deleteAgent(serverId)
   })
 
+  socket.on(socketEvents.events.onChangeMaxAgent, (numAgent: string) => {
+    if (!players[socket.id]) return
+    console.log(`Client đã thay đổi số lượng agent là ${numAgent}`)
+  })
+
+  socket.on(socketEvents.events.onClientSaveData, (data: string) => {
+    if (!players[socket.id]) return
+    console.log(`Client đã lưu dữ liệu!`)
+    console.log(data)
+  })
+
+  socket.on(socketEvents.events.onClientLoadData, (data: any) => {
+    if (!players[socket.id]) return
+    console.log(`Client đã tải dữ liệu!`)
+    console.log(data)
+  })
   socket.on(
     socketEvents.events.updateGameObjectsOnServer,
     (
@@ -96,14 +113,21 @@ io.on('connection', (socket: Socket) => {
     ) => {
       if (!players[socket.id]) return
       players[socket.id].updateAllGameObjects(agvInfo, autoAgvsInfo, agentsInfo)
-
+      if (
+        !players[socket.id].agv.finish &&
+        physicObject.checkFinish(players[socket.id].agv)
+      ) {
+        players[socket.id].agv.finish = true
+        console.log('Bạn đã kết thúc màn chơi!')
+        socket.emit(socketEvents.events.clientFinish)
+      }
       // check collide list of agvs with agents (only one main agv -- the player)
       overlappedAgv = physicObject.checkOverlap(
         [players[socket.id].agv],
         players[socket.id].agents
       )
       if (overlappedAgv.length !== 0) {
-        // console.log("main player overlapped with agents!");
+        // console.log('main player overlapped with agents!')
         socket.emit(
           socketEvents.events.tellClientMainAgvOverlapped,
           overlappedAgv
@@ -116,10 +140,21 @@ io.on('connection', (socket: Socket) => {
         players[socket.id].agents
       )
       if (overlappedAutoAgvs.length !== 0) {
-        // console.log("some auto agvs overlapped with agents!");
+        // console.log('some auto agvs overlapped with agents!')
         socket.emit(
           socketEvents.events.tellClientAutoAgvsOverlapped,
           overlappedAutoAgvs
+        )
+      }
+
+      const overlappedPairAgents = physicObject.checkAgentOverlap(
+        players[socket.id].agents
+      )
+      if (overlappedPairAgents.length !== 0) {
+        // console.log('agents overlapped!')
+        socket.emit(
+          socketEvents.events.tellClientAgentsOverlapped,
+          overlappedPairAgents
         )
       }
 

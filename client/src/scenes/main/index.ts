@@ -152,7 +152,6 @@ export class MainScene extends Scene {
       while (des.childNodes.length >= 1) {
         des.firstChild && des.removeChild(des.firstChild)
       }
-
       des.appendChild(
         des.ownerDocument.createTextNode(this.timeTable?.text || '')
       )
@@ -178,6 +177,10 @@ export class MainScene extends Scene {
         let input = this.getChildByName('numOfAgents')
         let numAgent = parseInt(input.value)
         if (!isNaN(numAgent) && numAgent > 0) {
+          socketEvents.socket.emit(
+            socketEvents.events.onChangeMaxAgent,
+            numAgent
+          )
           this.scene.setMaxAgents(numAgent)
         }
       }
@@ -284,6 +287,10 @@ export class MainScene extends Scene {
         }
       }
     )
+
+    socketEvents.socket.on(socketEvents.events.clientFinish, () => {
+      this.agv.Toastcomplete()
+    })
   }
 
   public setMaxAgents(num: number): void {
@@ -382,28 +389,29 @@ export class MainScene extends Scene {
     const agent = new Agent(this, startPos, endPos, this.groundPos, id)
     agent.setPushable(false)
     this.physics.add.collider(agent, this.roomLayer)
-    this.physics.add.overlap(this.agv, agent, () => {
-      agent.handleOverlap()
-      this.agv.handleOverlap()
-    })
-    this.autoAgvs.forEach((item) => {
-      item &&
-        this.physics.add.overlap(agent, item, () => {
-          item.freeze(agent)
-        })
-    })
-    this.agents.forEach((item) => {
-      this.physics.add.overlap(agent, item, () => {
-        const r = Math.random()
-        if (r < 0.5) {
-          agent.handleOverlap(true)
-          item.handleOverlap()
-        } else {
-          item.handleOverlap(true)
-          agent.handleOverlap()
-        }
-      })
-    })
+
+    // this.physics.add.overlap(this.agv, agent, () => {
+    //   agent.handleOverlap()
+    //   this.agv.handleOverlap()
+    // })
+    // this.autoAgvs.forEach((item) => {
+    //   item &&
+    //     this.physics.add.overlap(agent, item, () => {
+    //       item.freeze(agent)
+    //     })
+    // })
+    // this.agents.forEach((item) => {
+    //   this.physics.add.overlap(agent, item, () => {
+    //     const r = Math.random()
+    //     if (r < 0.5) {
+    //       agent.handleOverlap(true)
+    //       item.handleOverlap()
+    //     } else {
+    //       item.handleOverlap(true)
+    //       agent.handleOverlap()
+    //     }
+    //   })
+    // })
     this.agents.push(agent)
     this.graph?.setAgents(this.agents)
   }
@@ -431,6 +439,7 @@ export class MainScene extends Scene {
         elem.collidedActors.delete(agent)
       }
     })
+    socketEvents.socket.emit(socketEvents.events.deleteAgentOnServer)
   }
 
   addButton(): void {
@@ -555,6 +564,7 @@ export class MainScene extends Scene {
     document.body.appendChild(e)
     e.click()
     document.body.removeChild(e)
+    socketEvents.socket.emit(socketEvents.events.onClientSaveData, this.mapData)
     // console.log(text);
   }
   private handleClickLoadButton() {
@@ -623,6 +633,7 @@ export class MainScene extends Scene {
     document.body.appendChild(e)
     e.click()
     document.body.removeChild(e)
+    socketEvents.socket.emit(socketEvents.events.onClientLoadData, this.mapData)
   }
 
   private readVadereData(content: string): Record<string, string>[] | null {
@@ -792,7 +803,8 @@ export class MainScene extends Scene {
           des.ownerDocument.createTextNode(this.timeTable?.text || '')
         )
       }
-      this.listenAutoAgvOverlap(tempAgv)
+      this.autoAgvs.add(tempAgv)
+      // this.listenAutoAgvOverlap(tempAgv)
     }
   }
   private listenAutoAgvOverlap(autoAgv: AutoAgv) {
@@ -818,7 +830,6 @@ export class MainScene extends Scene {
         autoAgv.handleOverlap()
       })
     })
-    this.autoAgvs.add(autoAgv)
   }
 
   public get graph(): Graph {

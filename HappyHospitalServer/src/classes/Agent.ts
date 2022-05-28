@@ -29,6 +29,9 @@ export class Agent extends movingGameObject {
       groundPos
     )
     this.vertexs = this.astar.cal() || []
+    console.log(
+      `Agent có id ${this.id} đã được tạo đường đi và thêm vào màn chơi!`
+    )
     socket.emit(socketEvents.events.sendAgentPathToClient, {
       id: this.id,
       vertexs: this.vertexs,

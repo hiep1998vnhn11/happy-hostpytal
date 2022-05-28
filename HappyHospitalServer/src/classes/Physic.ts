@@ -40,6 +40,13 @@ export class Physic {
         ) {
           currentAgvOverlapped = true
           overLappedAgents.push({ agentServerId: agent.serverId })
+          if (agv.serverId) {
+            console.log(
+              `AAGV ${agv.serverId} đã va chạm với agent ${agent.serverId}`
+            )
+          } else {
+            console.log(`mAGV đã va chạm với agent ${agent.serverId}`)
+          }
         }
       })
 
@@ -52,6 +59,60 @@ export class Physic {
     })
 
     return overlappedAgvs
+  }
+
+  public checkAgentOverlap(agents: Agent[]) {
+    const overlappedPairAgents: {
+      agentServerId: string
+      overlappedAgentServerId: string
+    }[] = []
+    const ignoreAgent = new Set<string>()
+    agents.forEach((agent) => {
+      if (ignoreAgent.has(agent.serverId)) {
+        return
+      }
+      agents.forEach((agent2) => {
+        if (ignoreAgent.has(agent2.serverId)) {
+          return
+        }
+        if (agent.serverId !== agent2.serverId) {
+          if (
+            this.isOverLapped(
+              {
+                minAx: agent.x,
+                minAy: agent.y,
+                maxAx: agent.x + agent.sizeWidth,
+                maxAy: agent.y + agent.sizeHeight,
+              },
+              {
+                minBx: agent2.x,
+                minBy: agent2.y,
+                maxBx: agent2.x + agent2.sizeWidth,
+                maxBy: agent2.y + agent2.sizeHeight,
+              }
+            )
+          ) {
+            ignoreAgent.add(agent.serverId)
+            ignoreAgent.add(agent2.serverId)
+            console.log(
+              `Agent ${agent.serverId} đã va chạm với agent ${agent2.serverId}`
+            )
+            overlappedPairAgents.push({
+              agentServerId: agent.serverId,
+              overlappedAgentServerId: agent2.serverId,
+            })
+          }
+        }
+      })
+    })
+    return overlappedPairAgents
+  }
+
+  public checkFinish(agv: movingGameObject) {
+    if (Math.floor(agv.x / 32) === 50 && agv.y / 32 > 13 && agv.y / 32 < 14) {
+      return true
+    }
+    return false
   }
 
   // check is overLapped box 1 and box 2

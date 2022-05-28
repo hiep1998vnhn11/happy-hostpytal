@@ -14,7 +14,7 @@ export class Player {
   public doorPos: Position[]
 
   constructor(groundPos: Position[], doorPos: Position[]) {
-    this.agv = new Agv(0, 0, 0, 0, '')
+    this.agv = new Agv(0, 0, 0, 0, '', false)
     this.autoAgvs = []
     this.agents = []
     this.groundPos = groundPos
@@ -35,7 +35,7 @@ export class Player {
   ) {
     switch (gameObjectType) {
       case socketEvents.gameObjectType.agv:
-        this.agv = new Agv(x, y, width, height, serverId)
+        this.agv = new Agv(x, y, width, height, serverId, false)
         break
       case socketEvents.gameObjectType.autoAgv:
         this.autoAgvs.push(new AutoAgv(x, y, width, height, serverId))

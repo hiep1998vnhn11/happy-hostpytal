@@ -11,6 +11,12 @@ export const events = {
   userLoadedDataFromVadere: 'user-loaded-data-from-vadere',
 
   sendAgentPathToClient: 'send-agent-path-to-client',
+  tellClientAgentsOverlapped: 'tell-client-agents-overlapped',
+  onClientLoadData: 'on-client-load-data',
+  onClientSaveData: 'on-client-save-data',
+  onChangeMaxAgent: 'on-change-max-agent',
+
+  clientFinish: 'client-finish',
 }
 
 export const gameObjectType = {

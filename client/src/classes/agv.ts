@@ -186,7 +186,7 @@ export class Agv extends Actor {
         },
         duration: {
           in: 0,
-          hold: 100,
+          hold: 10000,
           out: 0,
         },
       })
@@ -204,18 +204,18 @@ export class Agv extends Actor {
     this.text.setPosition(this.x, this.y - this.height * 0.5)
 
     if (this.isDisable) return
-    if (
-      Math.floor(this.x / 32) === 50 &&
-      this.y / 32 > 13 &&
-      this.y / 32 < 14
-    ) {
-      this.overing = true
-      this.Toastcomplete()
-      setTimeout(() => {
-        this.isDisable = true
-      }, 2000)
-      return
-    }
+    // if (
+    //   Math.floor(this.x / 32) === 50 &&
+    //   this.y / 32 > 13 &&
+    //   this.y / 32 < 14
+    // ) {
+    //   this.overing = true
+    //   this.Toastcomplete()
+    //   setTimeout(() => {
+    //     this.isDisable = true
+    //   }, 2000)
+    //   return
+    // }
 
     // directions top, left, bottom, right
     let t, l, b, r
