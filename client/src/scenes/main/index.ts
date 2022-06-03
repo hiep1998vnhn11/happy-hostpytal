@@ -270,6 +270,13 @@ export class MainScene extends Scene {
       }
     )
     socketEvents.socket.on(
+      socketEvents.events.tellClientAgentsOverlapped,
+      (serverId) => {
+        const agent = this.agents.find((a) => a.serverId === serverId)
+        if (agent) agent.handleOverlap(true)
+      }
+    )
+    socketEvents.socket.on(
       socketEvents.events.tellClientLoadedDataFromVadere,
       (importAgents: ImportAgent[]) => {
         importAgents.forEach((agent) => {

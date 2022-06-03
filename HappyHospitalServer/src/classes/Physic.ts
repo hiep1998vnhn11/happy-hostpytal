@@ -97,32 +97,14 @@ export class Physic {
             console.log(
               `Agent ${agent.clientId} đã va chạm với agent ${agent2.clientId}`
             )
-            const rand = Math.random()
-            if (rand > 0.5) {
-              socket.emit(
-                socketEvents.events.tellClientAgentsOverlapped,
-                agent.serverId
-              )
-              agent2.recal(
-                new Position(
-                  Math.floor(agent.x / 32),
-                  Math.floor(agent.y / 32)
-                ),
-                socket
-              )
-            } else {
-              agent.recal(
-                new Position(
-                  Math.floor(agent2.x / 32),
-                  Math.floor(agent2.y / 32)
-                ),
-                socket
-              )
-              socket.emit(
-                socketEvents.events.tellClientAgentsOverlapped,
-                agent2.serverId
-              )
-            }
+            socket.emit(
+              socketEvents.events.tellClientAgentsOverlapped,
+              agent.serverId
+            )
+            agent2.recal(
+              new Position(Math.floor(agent.x / 32), Math.floor(agent.y / 32)),
+              socket
+            )
           }
         }
       })

@@ -194,6 +194,7 @@ export class Agent extends Actor {
   // }
 
   public setPath(path: Position[]) {
+    this.next = 1
     this.vertexs = path || []
   }
 }

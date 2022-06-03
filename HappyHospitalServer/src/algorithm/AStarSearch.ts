@@ -47,7 +47,7 @@ export class Astar {
   public start: Spot
   public end: Spot
   public ableSpot: Spot[] = []
-  public grid: Spot[][]
+  public grid: Spot[][] = []
   public path: Spot[] = []
   public ablePos: Position[] = []
 
@@ -62,17 +62,16 @@ export class Astar {
     this.height = height
     this.start = new Spot(startPos.x, startPos.y)
     this.end = new Spot(endPos.x, endPos.y)
-    this.grid = new Array(width)
     this.ablePos = ablePos
-
-    for (let i = 0; i < width; i++) {
+  }
+  calDefaultSplot(ablePos) {
+    this.grid = new Array(this.width)
+    for (let i = 0; i < this.width; i++) {
       this.grid[i] = []
-      for (let j = 0; j < height; j++) {
+      for (let j = 0; j < this.height; j++) {
         this.grid[i][j] = new Spot(i, j)
       }
     }
-  }
-  calDefaultSplot(ablePos) {
     this.ableSpot = []
     for (let i = 0; i < ablePos.length; i++) {
       this.ableSpot.push(this.grid[ablePos[i].x][ablePos[i].y])
@@ -98,13 +97,18 @@ export class Astar {
     return false
   }
 
-  public cal(removePos?: Position): Position[] | undefined {
-    if (removePos) {
+  public cal(
+    removePos?: Position,
+    currentPos?: Position
+  ): Position[] | undefined {
+    this.path = []
+    if (removePos && currentPos) {
       this.calDefaultSplot(
         this.ablePos.filter(
           (pos) => pos.x !== removePos.x && pos.y !== removePos.y
         )
       )
+      this.start = new Spot(currentPos.x, currentPos.y)
     } else {
       this.calDefaultSplot(this.ablePos)
     }
@@ -126,7 +130,7 @@ export class Astar {
       if (openSet[winner].equal(this.end)) {
         let cur: Spot = this.grid[this.end.i][this.end.j]
         this.path.push(cur)
-        while (cur.previous != undefined) {
+        while (cur.previous) {
           this.path.push(cur.previous)
           cur = cur.previous
         }
