@@ -46,9 +46,10 @@ export class Astar {
   public height: number
   public start: Spot
   public end: Spot
-  public ableSpot: Spot[]
+  public ableSpot: Spot[] = []
   public grid: Spot[][]
   public path: Spot[] = []
+  public ablePos: Position[] = []
 
   constructor(
     width: number,
@@ -62,6 +63,7 @@ export class Astar {
     this.start = new Spot(startPos.x, startPos.y)
     this.end = new Spot(endPos.x, endPos.y)
     this.grid = new Array(width)
+    this.ablePos = ablePos
 
     for (let i = 0; i < width; i++) {
       this.grid[i] = []
@@ -69,14 +71,15 @@ export class Astar {
         this.grid[i][j] = new Spot(i, j)
       }
     }
-
+  }
+  calDefaultSplot(ablePos) {
     this.ableSpot = []
     for (let i = 0; i < ablePos.length; i++) {
       this.ableSpot.push(this.grid[ablePos[i].x][ablePos[i].y])
     }
 
-    for (let i = 0; i < width; i++) {
-      for (let j = 0; j < height; j++) {
+    for (let i = 0; i < this.width; i++) {
+      for (let j = 0; j < this.height; j++) {
         this.grid[i][j].addNeighbors(this.ableSpot)
       }
     }
@@ -95,9 +98,18 @@ export class Astar {
     return false
   }
 
-  public cal(): Position[] | undefined {
-    const openSet: Spot[] = []
+  public cal(removePos?: Position): Position[] | undefined {
+    if (removePos) {
+      this.calDefaultSplot(
+        this.ablePos.filter(
+          (pos) => pos.x !== removePos.x && pos.y !== removePos.y
+        )
+      )
+    } else {
+      this.calDefaultSplot(this.ablePos)
+    }
 
+    const openSet: Spot[] = []
     // Array of spots that will not selected
     const closeSet: Spot[] = []
 

@@ -103,6 +103,7 @@ export class AutoAgv extends Actor {
       height: this.sizeHeight,
       serverId: this.serverId,
       gameObjectType: socketEvents.gameObjectType.autoAgv,
+      clientId: this.getAgvID(),
     })
   }
 

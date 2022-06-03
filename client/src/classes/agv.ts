@@ -97,7 +97,7 @@ export class Agv extends Actor {
     this.scene.rexUI.add
       .toast({
         x: 800,
-        y: window.innerHeight - 35,
+        y: window.innerHeight - 55,
         orientation: 0,
         background: this.scene.rexUI.add.roundRectangle(
           0,
@@ -130,7 +130,7 @@ export class Agv extends Actor {
     this.scene.rexUI.add
       .toast({
         x: 800,
-        y: window.innerHeight - 35,
+        y: window.innerHeight - 75,
         background: this.scene.rexUI.add.roundRectangle(
           0,
           0,
@@ -163,6 +163,7 @@ export class Agv extends Actor {
   }
 
   public Toastcomplete() {
+    this.isDisable = true
     const now = Date.now() / 1000
     this.scene.rexUI.add
       .toast({

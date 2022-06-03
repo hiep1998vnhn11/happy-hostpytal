@@ -29,6 +29,9 @@ export class Agent extends Actor {
 
   public serverId: string
 
+  private randX = Math.random() * 0.4 - 0.2
+  private randY = Math.random() * 0.4 - 0.2
+
   constructor(
     scene: MainScene,
     startPos: Position,
@@ -98,7 +101,7 @@ export class Agent extends Actor {
       this.eliminate()
       return
     }
-    if (!this.active) {
+    if (!this.active || this.isOverlap) {
       this.setVelocity(0, 0)
       return
     }
@@ -106,21 +109,12 @@ export class Agent extends Actor {
       Math.abs(this.vertexs[this.next].x * 32 - this.x) > 1 ||
       Math.abs(this.vertexs[this.next].y * 32 - this.y) > 1
     ) {
-      if (this.isOverlap) {
-        this.scene.physics.moveTo(
-          this,
-          this.vertexs[this.next].x * 32,
-          this.vertexs[this.next].y * 32,
-          this.speed
-        )
-      } else {
-        this.scene.physics.moveTo(
-          this,
-          this.vertexs[this.next].x * 32,
-          this.vertexs[this.next].y * 32,
-          this.speed
-        )
-      }
+      this.scene.physics.moveTo(
+        this,
+        this.vertexs[this.next].x * 32,
+        this.vertexs[this.next].y * 32,
+        this.speed
+      )
       this.agentText.setX(this.x)
       this.agentText.setY(this.y - 16)
     } else {

@@ -1,6 +1,9 @@
+import { Socket } from 'socket.io'
 import { Agent } from './Agent'
 import { movingGameObject } from './movingGameObject'
 import { Agv } from './Agv'
+import * as socketEvents from '../socketEvents'
+import { Position } from './position'
 
 export class Physic {
   constructor() {}
@@ -41,12 +44,12 @@ export class Physic {
         ) {
           currentAgvOverlapped = true
           overLappedAgents.push({ agentServerId: agent.serverId })
-          if (agv.serverId) {
+          if (agv.clientId) {
             console.log(
-              `AAGV ${agv.serverId} đã va chạm với agent ${agent.serverId}`
+              `AAGV ${agv.clientId} đã va chạm với agent ${agent.clientId}`
             )
           } else {
-            console.log(`mAGV đã va chạm với agent ${agent.serverId}`)
+            console.log(`mAGV đã va chạm với agent ${agent.clientId}`)
           }
         }
       })
@@ -62,11 +65,7 @@ export class Physic {
     return overlappedAgvs
   }
 
-  public checkAgentOverlap(agents: Agent[]) {
-    const overlappedPairAgents: {
-      agentServerId: string
-      overlappedAgentServerId: string
-    }[] = []
+  public checkAgentOverlap(agents: Agent[], socket: Socket) {
     const ignoreAgent = new Set<string>()
     agents.forEach((agent) => {
       if (ignoreAgent.has(agent.serverId)) {
@@ -98,15 +97,36 @@ export class Physic {
             console.log(
               `Agent ${agent.clientId} đã va chạm với agent ${agent2.clientId}`
             )
-            overlappedPairAgents.push({
-              agentServerId: agent.serverId,
-              overlappedAgentServerId: agent2.serverId,
-            })
+            const rand = Math.random()
+            if (rand > 0.5) {
+              socket.emit(
+                socketEvents.events.tellClientAgentsOverlapped,
+                agent.serverId
+              )
+              agent2.recal(
+                new Position(
+                  Math.floor(agent.x / 32),
+                  Math.floor(agent.y / 32)
+                ),
+                socket
+              )
+            } else {
+              agent.recal(
+                new Position(
+                  Math.floor(agent2.x / 32),
+                  Math.floor(agent2.y / 32)
+                ),
+                socket
+              )
+              socket.emit(
+                socketEvents.events.tellClientAgentsOverlapped,
+                agent2.serverId
+              )
+            }
           }
         }
       })
     })
-    return overlappedPairAgents
   }
 
   public checkFinish(agv: Agv) {

@@ -118,6 +118,7 @@ export class MainScene extends Scene {
     socketEvents.socket.emit(socketEvents.events.newClient, {
       groundPos: this.groundPos,
       doorPos: this.doorPos,
+      listTile: this.listTile,
     }) // vi du ket noi client va socket
     this.spaceGraph = new Graph(52, 28, this.listTile, this.pathPos)
     this.emergencyGraph = new EmergencyGraph(

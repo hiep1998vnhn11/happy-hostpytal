@@ -43,12 +43,14 @@ io.on('connection', (socket: Socket) => {
     ({
       groundPos,
       doorPos,
+      listTile,
     }: {
       groundPos: Position[]
       doorPos: Position[]
+      listTile: Array<Array<boolean>>
     }) => {
       console.log('new client connected!, with id: ', socket.id)
-      players[socket.id] = new Player(groundPos, doorPos)
+      players[socket.id] = new Player(groundPos, doorPos, listTile)
     }
   )
 
@@ -150,16 +152,9 @@ io.on('connection', (socket: Socket) => {
         )
       }
 
-      const overlappedPairAgents = physicObject.checkAgentOverlap(
-        players[socket.id].agents
-      )
-      if (overlappedPairAgents.length !== 0) {
-        // console.log('agents overlapped!')
-        socket.emit(
-          socketEvents.events.tellClientAgentsOverlapped,
-          overlappedPairAgents
-        )
-      }
+      physicObject.checkAgentOverlap(players[socket.id].agents, socket)
+
+      // console.log('agents overlapped!')
 
       // console.log(JSON.stringify(overlappedAgv))
       // console.log(JSON.stringify(overlappedAutoAgvs));  // test player overlapped

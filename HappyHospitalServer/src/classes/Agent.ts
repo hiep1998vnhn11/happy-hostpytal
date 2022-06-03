@@ -38,4 +38,12 @@ export class Agent extends movingGameObject {
       vertexs: this.vertexs,
     })
   }
+
+  recal(pos: Position, socket: Socket) {
+    this.vertexs = this.astar.cal(pos) || []
+    socket.emit(socketEvents.events.sendAgentPathToClient, {
+      id: this.id,
+      vertexs: this.vertexs,
+    })
+  }
 }
