@@ -9,6 +9,8 @@ export class Agent extends movingGameObject {
   public id: number
   private astar: Astar
   private vertexs: Position[] = []
+  desX: number
+  desY: number
   constructor(
     x: number,
     y: number,
@@ -18,10 +20,14 @@ export class Agent extends movingGameObject {
     agentObject: AgentObject,
     groundPos: Position[],
     socket: Socket,
-    clientId
+    clientId,
+    desX,
+    desY
   ) {
     super(x, y, sizeWidth, sizeHeight, serverId, clientId)
     this.id = agentObject.id
+    this.desX = desX
+    this.desY = desY
     this.astar = new Astar(
       52,
       28,

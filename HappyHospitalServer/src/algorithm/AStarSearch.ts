@@ -64,7 +64,7 @@ export class Astar {
     this.end = new Spot(endPos.x, endPos.y)
     this.ablePos = ablePos
   }
-  calDefaultSplot(ablePos) {
+  calDefaultSplot(ablePos: Position[]): void {
     this.grid = new Array(this.width)
     for (let i = 0; i < this.width; i++) {
       this.grid[i] = []
@@ -105,13 +105,15 @@ export class Astar {
     if (removePos && currentPos) {
       this.calDefaultSplot(
         this.ablePos.filter(
-          (pos) => pos.x !== removePos.x && pos.y !== removePos.y
+          (pos) => pos.x !== removePos.x || pos.y !== removePos.y
         )
       )
+      // this.calDefaultSplot(this.ablePos)
       this.start = new Spot(currentPos.x, currentPos.y)
     } else {
       this.calDefaultSplot(this.ablePos)
     }
+    // this.calDefaultSplot(this.ablePos)
 
     const openSet: Spot[] = []
     // Array of spots that will not selected

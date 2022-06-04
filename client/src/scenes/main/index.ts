@@ -248,21 +248,15 @@ export class MainScene extends Scene {
         }[]
       ) => {
         this.autoAgvs.forEach((autoAgv) => {
-          // find out which agv overlapped
           for (let i = 0; i < overlappedAutoAgvs.length; i++) {
             if (autoAgv.serverId === overlappedAutoAgvs[i].agvServerId) {
-              // find out which agent overlapped with current auto agv
-              let overlappedAgents = overlappedAutoAgvs[i].overlappedAgents
-
+              const overlappedAgents = overlappedAutoAgvs[i].overlappedAgents
               this.agents.forEach((agent) => {
-                for (let j = 0; j < overlappedAgents.length; j++) {
-                  if (agent.serverId === overlappedAgents[j].agentServerId) {
-                    autoAgv.freeze(agent)
-                    break
-                  }
-                }
+                const index = overlappedAgents.findIndex(
+                  (el) => el.agentServerId === agent.serverId
+                )
+                if (index !== -1) autoAgv.freeze(agent)
               })
-
               break
             }
           }
@@ -287,10 +281,20 @@ export class MainScene extends Scene {
 
     socketEvents.socket.on(
       socketEvents.events.sendAgentPathToClient,
-      ({ vertexs, id }: { id: number; vertexs: Position[] }) => {
+      ({
+        vertexs,
+        id,
+        end,
+      }: {
+        id: number
+        vertexs: Position[]
+        end?: boolean
+      }) => {
         const index = this.agents.findIndex((agent) => agent.getId() === id)
         if (index !== -1) {
-          this.agents[index].setPath(vertexs)
+          if (end) {
+            this.agents[index].complete()
+          } else this.agents[index].setPath(vertexs)
         }
       }
     )

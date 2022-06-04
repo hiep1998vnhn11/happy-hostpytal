@@ -1,7 +1,6 @@
 import { Actor } from './actor'
 import { Position } from './position'
 import { Text } from './text'
-import { Astar } from '../algorithm/AStarSearch'
 import uniqid from 'uniqid'
 import * as socketEvents from '../socketEvents'
 import { MainScene } from '../scenes'
@@ -14,23 +13,16 @@ export class Agent extends Actor {
   private vertexs: Position[]
   private endText: Text
   private agentText: Text
-  // private astar: Astar
   private next: number = 1
   private id: number
   public isOverlap: boolean = false
   public speed: number = 38
   private avoiding = false
-
   private overlapTimer: number = 0
   private activeTimer: number = 0
-
   private sizeWidth = 32
   private sizeHeight = 32
-
   public serverId: string
-
-  private randX = Math.random() * 0.4 - 0.2
-  private randY = Math.random() * 0.4 - 0.2
 
   constructor(
     scene: MainScene,
@@ -85,20 +77,28 @@ export class Agent extends Actor {
         endPos: this.endPos,
       },
       clientId: this.id,
+      desX: this.endPos.x,
+      desY: this.endPos.y,
     })
   }
 
+  public complete() {
+    this.agentText.setText('DONE')
+    this.agentText.setFontSize(12)
+    this.agentText.setX(this.x - 1)
+    this.x = this.vertexs[this.vertexs.length - 1].x * 32
+    this.y = this.vertexs[this.vertexs.length - 1].y * 32
+    this.setVelocity(0, 0)
+    this.eliminate()
+  }
+
   public goToDestinationByVertexs() {
-    if (!this.vertexs.length) return
-    if (this.avoiding) return
-    if (this.next == this.vertexs.length) {
-      this.agentText.setText('DONE')
-      this.agentText.setFontSize(12)
-      this.agentText.setX(this.x - 1)
-      this.x = this.vertexs[this.vertexs.length - 1].x * 32
-      this.y = this.vertexs[this.vertexs.length - 1].y * 32
+    if (!this.vertexs.length) {
       this.setVelocity(0, 0)
-      this.eliminate()
+      return
+    }
+    if (this.next == this.vertexs.length) {
+      this.complete()
       return
     }
     if (!this.active || this.isOverlap) {
@@ -167,34 +167,12 @@ export class Agent extends Actor {
     }
   }
 
-  // public handleAvoid(position: Position) {
-  //   if (this.next == this.vertexs.length) {
-  //     this.agentText.setText('DONE')
-  //     this.agentText.setFontSize(12)
-  //     this.agentText.setX(this.x - 1)
-  //     this.x = this.vertexs[this.vertexs.length - 1].x * 32
-  //     this.y = this.vertexs[this.vertexs.length - 1].y * 32
-  //     this.setVelocity(0, 0)
-  //     this.eliminate()
-  //     return
-  //   }
-  //   if (this.next + 1 == this.vertexs.length) return
-  //   const index = this.vertexs.findIndex(
-  //     (vertex) => vertex.x === position.x && vertex.y === position.y
-  //   )
-  //   this.avoiding = true
-  //   //When the barrier is not in the vertexs, continue to trajectory
-  //   if (index === -1) return
-  //   // this.scene.physics.moveTo(this, this.x + 32, this.y + 32, this.speed)
-
-  //   const avoidingPosition = this.astar.getAvoidPath(
-  //     position,
-  //     this.vertexs[this.next + 1]
-  //   )
-  // }
-
   public setPath(path: Position[]) {
-    this.next = 1
+    if (!path.length) this.complete()
+
+    if (path.length > 1) {
+      this.next = 2
+    } else this.next = 1
     this.vertexs = path || []
   }
 }

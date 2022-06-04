@@ -43,14 +43,12 @@ io.on('connection', (socket: Socket) => {
     ({
       groundPos,
       doorPos,
-      listTile,
     }: {
       groundPos: Position[]
       doorPos: Position[]
-      listTile: Array<Array<boolean>>
     }) => {
       console.log('new client connected!, with id: ', socket.id)
-      players[socket.id] = new Player(groundPos, doorPos, listTile)
+      players[socket.id] = new Player(groundPos, doorPos)
     }
   )
 
@@ -129,7 +127,8 @@ io.on('connection', (socket: Socket) => {
       // check collide list of agvs with agents (only one main agv -- the player)
       overlappedAgv = physicObject.checkOverlap(
         [players[socket.id].agv],
-        players[socket.id].agents
+        players[socket.id].agents,
+        socket
       )
       if (overlappedAgv.length !== 0) {
         // console.log('main player overlapped with agents!')
@@ -142,7 +141,8 @@ io.on('connection', (socket: Socket) => {
       // check collide list of auto agvs with agents
       overlappedAutoAgvs = physicObject.checkOverlap(
         players[socket.id].autoAgvs,
-        players[socket.id].agents
+        players[socket.id].agents,
+        socket
       )
       if (overlappedAutoAgvs.length !== 0) {
         // console.log('some auto agvs overlapped with agents!')

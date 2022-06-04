@@ -1,7 +1,6 @@
 import { Position } from './position'
 import { Node2D, StateOfNode2D } from './node'
 import { Agent } from './agent'
-import { MainScene } from '../scenes'
 import { AutoAgv } from './AutoAgv'
 import { Agv } from './agv'
 
@@ -20,7 +19,6 @@ export class Graph {
     height: number,
     danhsachke: Position[][][],
     pathPos: Position[]
-    //scene: MainScene
   ) {
     this.width = width
     this.height = height
@@ -97,12 +95,12 @@ export class Graph {
       }
     }
     for (let i = 0; i < this.agents.length; i++) {
-      let agent = this.agents[i]
+      const agent = this.agents[i]
       if (agent.active) {
-        let xl = Math.floor(agent.x / 32)
-        let xr = Math.floor((agent.x + 31) / 32)
-        let yt = Math.floor(agent.y / 32)
-        let yb = Math.floor((agent.y + 31) / 32)
+        const xl = Math.floor(agent.x / 32)
+        const xr = Math.floor((agent.x + 31) / 32)
+        const yt = Math.floor(agent.y / 32)
+        const yb = Math.floor((agent.y + 31) / 32)
         cur[xl][yt] = 1
         cur[xl][yb] = 1
         cur[xr][yt] = 1
