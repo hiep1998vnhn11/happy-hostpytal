@@ -102,6 +102,18 @@ io.on('connection', (socket: Socket) => {
     console.log(data)
   })
 
+  socket.on(
+    socketEvents.events.agentRequestNewPath,
+    (data: { id: string; currentPos: Position; endPos: Position }) => {
+      if (!players[socket.id]) return
+      const agent = players[socket.id].agents.find(
+        (agent) => agent.serverId === data.id
+      )
+      if (!agent) return
+      agent.recal(data.currentPos, socket)
+    }
+  )
+
   socket.on(socketEvents.events.onClientLoadData, (data: any) => {
     if (!players[socket.id]) return
     console.log(`Client đã tải dữ liệu!`)

@@ -2,13 +2,14 @@ import { Socket } from 'socket.io'
 import { movingGameObject } from './movingGameObject'
 import { AgentObject } from './GameObject'
 import { Astar } from '../algorithm/AStarSearch'
+import { calPathAstar, calPathAstarGrid } from '../algorithm'
 import { Position } from './position'
 import * as socketEvents from '../socketEvents'
 
 export class Agent extends movingGameObject {
   public id: number
-  private astar: Astar
   private vertexs: Position[] = []
+  private groundPos: Position[]
   desX: number
   desY: number
   constructor(
@@ -28,14 +29,14 @@ export class Agent extends movingGameObject {
     this.id = agentObject.id
     this.desX = desX
     this.desY = desY
-    this.astar = new Astar(
+    this.vertexs = calPathAstarGrid(
       52,
       28,
+      groundPos,
       new Position(agentObject.startPos.x, agentObject.startPos.y),
-      new Position(agentObject.endPos.x, agentObject.endPos.y),
-      groundPos
+      new Position(agentObject.endPos.x, agentObject.endPos.y)
     )
-    this.vertexs = this.astar.cal() || []
+    this.groundPos = groundPos
     console.log(
       `Agent có id ${this.id} đã được tạo đường đi và thêm vào màn chơi!`
     )
@@ -46,11 +47,13 @@ export class Agent extends movingGameObject {
   }
 
   recal(pos: Position, socket: Socket) {
-    this.vertexs =
-      this.astar.cal(
-        pos,
-        new Position(Math.floor(this.x / 32), Math.floor(this.y / 32))
-      ) || []
+    this.vertexs = calPathAstarGrid(
+      52,
+      28,
+      this.groundPos,
+      new Position(pos.x, pos.y),
+      new Position(this.desX, this.desY)
+    )
     socket.emit(socketEvents.events.sendAgentPathToClient, {
       id: this.id,
       vertexs: this.vertexs,

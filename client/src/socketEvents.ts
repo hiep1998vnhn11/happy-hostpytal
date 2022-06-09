@@ -9,6 +9,7 @@ export const events = {
   tellClientAutoAgvsOverlapped: 'tell-client-auto-agvs-overlapped',
   tellClientLoadedDataFromVadere: 'tell-client-loaded-data-from-vadere',
   userLoadedDataFromVadere: 'user-loaded-data-from-vadere',
+  agentRequestNewPath: 'agent-request-new-path',
 
   sendAgentPathToClient: 'send-agent-path-to-client',
   tellClientAgentsOverlapped: 'tell-client-agents-overlapped',
@@ -16,7 +17,6 @@ export const events = {
   onClientLoadData: 'on-client-load-data',
   onClientSaveData: 'on-client-save-data',
   onChangeMaxAgent: 'on-change-max-agent',
-
   clientFinish: 'client-finish',
 }
 

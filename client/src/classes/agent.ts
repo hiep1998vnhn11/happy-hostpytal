@@ -4,42 +4,37 @@ import { Text } from './text'
 import uniqid from 'uniqid'
 import * as socketEvents from '../socketEvents'
 import { MainScene } from '../scenes'
+import { calPathAstarGrid } from '../algorithm'
 
 export class Agent extends Actor {
   private startPos: Position
   private endPos: Position
-  private groundPos: Position[]
-  private path?: Position[]
   private vertexs: Position[]
   private endText: Text
   private agentText: Text
-  private next: number = 1
   private id: number
   public isOverlap: boolean = false
   public speed: number = 38
-  private avoiding = false
-  private overlapTimer: number = 0
   private activeTimer: number = 0
   private sizeWidth = 32
   private sizeHeight = 32
   public serverId: string
+  public currentPos: Position
+  public nextPos: Position | undefined = undefined
 
   constructor(
     scene: MainScene,
     startPos: Position,
     endPos: Position,
-    groundPos: Position[],
     id: number
   ) {
     super(scene, startPos.x * 32, startPos.y * 32, 'tiles_spr', 17)
+    this.scene = scene
     this.startPos = startPos
     this.endPos = endPos
-    this.groundPos = groundPos
-    this.path = []
     this.vertexs = []
     this.id = id
     this.speed = Math.floor(Math.random() * (this.speed - 10)) + 10
-
     this.endText = new Text(
       this.scene,
       endPos.x * 32 + 6,
@@ -47,21 +42,19 @@ export class Agent extends Actor {
       id.toString(),
       '28px'
     )
-    this.scene.physics.add.overlap(this, this.endText, () => {
-      console.log(this.endText.text)
-    })
     this.agentText = new Text(
       this.scene,
       startPos.x * 32,
       startPos.y * 32 - 16,
       id.toString()
     )
-
     // PHYSICS
     this.getBody().setSize(31, 31)
     this.setOrigin(0, 0)
 
     this.serverId = uniqid()
+    this.currentPos = this.startPos
+    this.active = false
 
     // socket: send agents to server
     socketEvents.sendGameObjectToServer({
@@ -85,44 +78,89 @@ export class Agent extends Actor {
   public complete() {
     this.agentText.setText('DONE')
     this.agentText.setFontSize(12)
-    this.agentText.setX(this.x - 1)
-    this.x = this.vertexs[this.vertexs.length - 1].x * 32
-    this.y = this.vertexs[this.vertexs.length - 1].y * 32
+    this.x = this.currentPos.x * 32
+    this.y = this.currentPos.y * 32
     this.setVelocity(0, 0)
     this.eliminate()
   }
 
   public goToDestinationByVertexs() {
-    if (!this.vertexs.length) {
-      this.setVelocity(0, 0)
+    this.agentText.setPosition(this.x, this.y - this.height * 0.5)
+    this.setVelocity(0, 0)
+    if (!this.active) {
       return
     }
-    if (this.next == this.vertexs.length) {
+    if (!this.nextPos) {
       this.complete()
       return
     }
-    if (!this.active || this.isOverlap) {
-      this.setVelocity(0, 0)
-      return
-    }
+    const agentName = 'agent_' + this.id
+
     if (
-      Math.abs(this.vertexs[this.next].x * 32 - this.x) > 1 ||
-      Math.abs(this.vertexs[this.next].y * 32 - this.y) > 1
+      Math.abs(this.nextPos.x * 32 - this.x) > 1 ||
+      Math.abs(this.nextPos.y * 32 - this.y) > 1
     ) {
-      this.scene.physics.moveTo(
+      const busyGridState = this.getSnene().getBusyGridState(
+        this.nextPos.x,
+        this.nextPos.y
+      )
+      if (busyGridState && busyGridState !== agentName) {
+        const split = busyGridState.split('_')
+        const object = split[0]
+        if (object !== 'agent') {
+          this.active = false
+          return this.recalculatePath(
+            this.currentPos.x,
+            this.currentPos.y,
+            this.nextPos
+          )
+        }
+        const agentId = +split[1] || 0
+        if (agentId > this.id) {
+          this.handleOverlap()
+          return
+          // socketEvents.socket.emit(socketEvents.events.agentRequestNewPath, {
+          //   id: this.serverId,
+          //   currentPos: this.currentPos,
+          //   endPos: this.endPos,
+          // })
+          // this.setVelocity(0, 0)
+          // return
+        } else {
+          this.active = false
+          return this.recalculatePath(
+            this.currentPos.x,
+            this.currentPos.y,
+            this.nextPos
+          )
+        }
+      }
+      this.getSnene().physics.moveTo(
         this,
-        this.vertexs[this.next].x * 32,
-        this.vertexs[this.next].y * 32,
+        this.nextPos.x * 32,
+        this.nextPos.y * 32,
         this.speed
       )
-      this.agentText.setX(this.x)
-      this.agentText.setY(this.y - 16)
     } else {
-      this.next++
+      this.getSnene().setBusyGridState(
+        this.currentPos.x,
+        this.currentPos.y,
+        null
+      )
+      this.currentPos = this.nextPos
+      this.nextPos = this.vertexs.pop()
+      if (this.nextPos) {
+        this.getSnene().setBusyGridState(
+          this.nextPos.x,
+          this.nextPos.y,
+          agentName
+        )
+      }
     }
   }
   preUpdate(): void {
-    this.goToDestinationByVertexs()
+    // this.goToDestinationByVertexs()
+    this.updatePre()
   }
 
   public getStartPos(): Position {
@@ -136,7 +174,7 @@ export class Agent extends Actor {
   }
 
   public eliminate() {
-    this.scene.events.emit('destroyAgent', this)
+    this.getSnene().events.emit('destroyAgent', this)
     this.endText.destroy()
     this.agentText.destroy()
     this.destroy()
@@ -150,29 +188,136 @@ export class Agent extends Actor {
     this.setActive(true)
   }
 
-  public handleOverlap(isStand = false) {
-    if (this.isOverlap) return
-    this.isOverlap = true
-    if (this.overlapTimer) clearTimeout(this.overlapTimer)
-    this.overlapTimer = setTimeout(() => {
-      this.isOverlap = false
-    }, 4000)
-    if (isStand) {
-      this.setVelocity(0, 0)
-      this.setActive(false)
-      if (this.activeTimer) clearTimeout(this.activeTimer)
-      this.activeTimer = setTimeout(() => {
-        this.setActive(true)
-      }, 2000)
-    }
+  public handleOverlap() {
+    this.setVelocity(0, 0)
+    this.setActive(false)
+    if (this.activeTimer) clearTimeout(this.activeTimer)
+    this.activeTimer = setTimeout(() => {
+      this.setActive(true)
+    }, 1000)
   }
 
   public setPath(path: Position[]) {
-    if (!path.length) this.complete()
+    if (!path.length) return this.complete()
+    this.active = true
+    this.vertexs = path
+    this.nextPos = this.vertexs.pop()
+  }
 
-    if (path.length > 1) {
-      this.next = 2
-    } else this.next = 1
-    this.vertexs = path || []
+  recalculatePath(x: number, y: number, excludedPos: Position) {
+    const clonePos = [...this.getSnene().groundPos].filter(
+      (i) => i.x != excludedPos.x || i.y != excludedPos.y
+    )
+    this.vertexs = calPathAstarGrid(
+      52,
+      28,
+      clonePos,
+      new Position(x, y),
+      this.endPos
+    )
+    this.active = true
+
+    if (this.vertexs.length == 0) {
+      return
+    }
+    this.agentText.setX(this.x)
+    this.agentText.setY(this.y - 16)
+    this.currentPos = this.vertexs.pop()!
+    this.nextPos = this.currentPos
+    this.getSnene().setBusyGridState(
+      this.currentPos.x,
+      this.currentPos.y,
+      'agent_' + this.id
+    )
+  }
+
+  updatePre() {
+    if (!this.active) {
+      return
+    }
+    const agentName = 'agent_' + this.id
+    this.agentText.setPosition(this.x, this.y - this.height * 0.5)
+    this.setVelocity(0, 0)
+    if (
+      this.nextPos &&
+      Math.abs(this.nextPos.x * 32 - this.x) < 1 &&
+      Math.abs(this.nextPos.y * 32 - this.y) < 1
+    ) {
+      if (this.currentPos)
+        this.getSnene().setBusyGridState(
+          this.currentPos.x,
+          this.currentPos.y,
+          null
+        )
+      this.currentPos = this.nextPos
+      this.nextPos = this.vertexs.pop()
+      if (!this.nextPos) return
+
+      this.getSnene().setBusyGridState(
+        this.currentPos.x,
+        this.currentPos.y,
+        agentName
+      )
+      if (!this.getSnene().getBusyGridState(this.nextPos.x, this.nextPos.y)) {
+        this.getSnene().setBusyGridState(
+          this.nextPos.x,
+          this.nextPos.y,
+          agentName
+        )
+      }
+      return this.move()
+    } else if (!this.nextPos) {
+      this.getSnene().setBusyGridState(
+        this.currentPos.x,
+        this.currentPos.y,
+        null
+      )
+      this.eliminate()
+      return
+    } else {
+      const nextObjectName = this.getSnene().getBusyGridState(
+        this.nextPos.x,
+        this.nextPos.y
+      )
+      if (!nextObjectName) {
+        this.getSnene().setBusyGridState(
+          this.nextPos.x,
+          this.nextPos.y,
+          agentName
+        )
+        return
+      }
+      if (nextObjectName !== agentName) {
+        const split = nextObjectName.split('_')
+        const object = split[0]
+        if (object !== 'agent') {
+          return this.recalculatePath(
+            this.currentPos.x,
+            this.currentPos.y,
+            this.nextPos
+          )
+        }
+        const agentId = +split[1]
+        if (agentId > this.id) {
+          return this.handleOverlap()
+        }
+        return this.recalculatePath(
+          this.currentPos.x,
+          this.currentPos.y,
+          this.nextPos
+        )
+      }
+      this.move()
+    }
+  }
+  move() {
+    this.nextPos
+      ? this.getSnene().physics.moveTo(
+          this,
+          this.nextPos.x * 32,
+          this.nextPos.y * 32,
+          this.speed
+        )
+      : this.complete()
   }
 }

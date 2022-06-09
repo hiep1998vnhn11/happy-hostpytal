@@ -50,7 +50,7 @@ export class MainScene extends Scene {
   private pathLayer!: Tilemaps.TilemapLayer
   private noPathLayer!: Tilemaps.TilemapLayer
   private bedLayer!: Tilemaps.TilemapLayer
-  private groundPos!: Position[]
+  public groundPos!: Position[]
   private pathPos!: Position[]
   private listTile: Position[][][]
   private saveButton?: Phaser.GameObjects.Text
@@ -76,6 +76,16 @@ export class MainScene extends Scene {
   ])
   public count: number = 0
   public forcasting?: Forcasting
+  public busyGrid: Record<number, Record<number, string | null>> = {}
+
+  public setBusyGridState(x: number, y: number, state: string | null) {
+    if (!x || !y) return
+    if (!this.busyGrid[x]) this.busyGrid[x] = {}
+    this.busyGrid[x][y] = state
+  }
+  getBusyGridState(x: number, y: number) {
+    return this.busyGrid[x][y]
+  }
 
   constructor() {
     super('main-scene')
@@ -115,6 +125,9 @@ export class MainScene extends Scene {
     this.initMap()
     this.initTileMap()
     this.initGraph()
+    this.groundPos.forEach((pos) => {
+      this.setBusyGridState(pos.x, pos.y, null)
+    })
     socketEvents.socket.emit(socketEvents.events.newClient, {
       groundPos: this.groundPos,
       doorPos: this.doorPos,
@@ -267,7 +280,7 @@ export class MainScene extends Scene {
       socketEvents.events.tellClientAgentsOverlapped,
       (serverId) => {
         const agent = this.agents.find((a) => a.serverId === serverId)
-        if (agent) agent.handleOverlap(true)
+        if (agent) agent.handleOverlap()
       }
     )
     socketEvents.socket.on(
@@ -309,21 +322,17 @@ export class MainScene extends Scene {
     alert('Thiết lập số Agents thành công!')
   }
 
-  public get harmfullness(): number {
-    return this._harmfullness
-  }
   public static formatHarmfullness(harmfullness: number): string {
-    return harmfullness.toFixed(3).replace(/\d(?=(\d{3})+\.)/g, '$&,')
-  }
-  public set harmfullness(value: number) {
-    this._harmfullness = value
-    this.harmfulTable
-      ?.setText('H.ness: ' + MainScene.formatHarmfullness(this._harmfullness))
-      .setFontSize(26)
-      .setOrigin(0.1)
-      .setPosition(window.innerWidth - 215, 320)
-  }
+    let text = harmfullness.toFixed(3).replace(/\d(?=(\d{3})+\.)/g, '$&,')
 
+    if (text.length < 9) {
+      const count = 9 - text.length
+      for (let i = 0; i < count; i++) {
+        text = ' ' + text
+      }
+    }
+    return text
+  }
   createAgents(numAgentInit: number, time: number) {
     // khoi tao numAgentInit dau tien
     const randoms = []
@@ -397,7 +406,7 @@ export class MainScene extends Scene {
       Math.floor(importAgent.endPos.y)
     )
     if (!startPos.validAgent() || !endPos.validAgent()) return
-    const agent = new Agent(this, startPos, endPos, this.groundPos, id)
+    const agent = new Agent(this, startPos, endPos, id)
     agent.setPushable(false)
     this.physics.add.collider(agent, this.roomLayer)
 
@@ -511,13 +520,13 @@ export class MainScene extends Scene {
     this.harmfulTable = this.add.text(
       window.innerWidth - 200,
       330,
-      'H.ness: 0',
+      '  H.ness: \n   0.000',
       {
         color: '#D8202A',
         fontSize: '22px',
         fontStyle: 'bold',
         fixedWidth: 200,
-        wordWrap: { width: 200 },
+        wordWrap: { width: 180 },
       }
     )
   }
@@ -603,7 +612,10 @@ export class MainScene extends Scene {
                 this.sec = this.mapData.sec
               }
               if (this.harmfulTable && this.mapData._harmfullness) {
-                this.harmfulTable.text = 'H.ness: ' + this.mapData._harmfullness
+                this.harmfulTable.setText(
+                  '  H.ness: \n' +
+                    MainScene.formatHarmfullness(this.mapData._harmfullness)
+                )
                 this._harmfullness = this.mapData._harmfullness
               }
               if (this.mapData.agv) {
@@ -959,5 +971,19 @@ export class MainScene extends Scene {
         }
       }
     }
+  }
+
+  public getAgentByID(id: number): Agent | null {
+    const index = this.agents.findIndex((agent) => agent.getId() === id)
+    if (index === -1) return null
+    return this.agents[index]
+  }
+
+  public getAgvById(id: number): AutoAgv | null {
+    let autoAgv: AutoAgv | null = null
+    this.autoAgvs.forEach((agv) =>
+      agv.getAgvID() === id ? (autoAgv = agv) : null
+    )
+    return autoAgv
   }
 }

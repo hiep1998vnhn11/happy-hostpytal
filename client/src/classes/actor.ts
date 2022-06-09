@@ -5,7 +5,7 @@ import { MainScene } from '../scenes'
 export class Actor extends Physics.Arcade.Sprite {
   private static _id = 0
   private agvID: number
-  private expectedTime: number = 0
+  protected expectedTime: number = 0
   public collidedActors: Set<Actor>
 
   constructor(
@@ -50,7 +50,7 @@ export class Actor extends Physics.Arcade.Sprite {
     endY: number
   ): void {
     this.expectedTime =
-      (this.scene as MainScene).sec +
+      this.getSnene().sec +
       Math.floor(Math.sqrt((endX - startX) ** 2 + (endY - startY) ** 2) * 0.085)
   }
 
@@ -88,5 +88,8 @@ export class Actor extends Physics.Arcade.Sprite {
 
   public freeze(actor: Actor) {
     this.collidedActors.add(actor)
+  }
+  public getSnene() {
+    return this.scene as MainScene
   }
 }

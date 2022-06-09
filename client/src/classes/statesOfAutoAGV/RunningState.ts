@@ -93,14 +93,26 @@ export class RunningState extends HybridState {
         Math.abs(agv.x - nodeNext.x * 32) > 1 ||
         Math.abs(agv.y - nodeNext.y * 32) > 1
       ) {
+        const nextObjectName = agv
+          .getSnene()
+          .getBusyGridState(nodeNext.x, nodeNext.y)
+        if (nextObjectName) return
         agv.scene.physics.moveTo(agv, nodeNext.x * 32, nodeNext.y * 32, 32)
       } else {
         /**
          * Khi đã đến nút tiếp theo thì cập nhật trạng thái
          * cho nút trước đó, nút hiện tại và Agv
          */
+        agv.getSnene().setBusyGridState(agv.curNode.x, agv.curNode.y, null)
         agv.curNode.setState(StateOfNode2D.EMPTY)
         agv.curNode = nodeNext
+        agv
+          .getSnene()
+          .setBusyGridState(
+            agv.curNode.x,
+            agv.curNode.y,
+            'agv_' + agv.getAgvID()
+          )
         agv.curNode.setState(StateOfNode2D.BUSY)
         agv.cur++
         agv.setX(agv.curNode.x * 32)

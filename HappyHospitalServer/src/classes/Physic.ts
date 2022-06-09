@@ -45,21 +45,21 @@ export class Physic {
         ) {
           currentAgvOverlapped = true
           overLappedAgents.push({ agentServerId: agent.serverId })
-          if (
-            agent.desX === Math.floor(agv.x / 32) &&
-            agent.desY === Math.floor(agv.y / 32)
-          ) {
-            socket.emit(socketEvents.events.sendAgentPathToClient, {
-              id: agent.id,
-              vertexs: [],
-              end: true,
-            })
-          } else {
-            agent.recal(
-              new Position(Math.floor(agent.x / 32), Math.floor(agent.y / 32)),
-              socket
-            )
-          }
+          // if (
+          //   agent.desX === Math.floor(agv.x / 32) &&
+          //   agent.desY === Math.floor(agv.y / 32)
+          // ) {
+          //   socket.emit(socketEvents.events.sendAgentPathToClient, {
+          //     id: agent.id,
+          //     vertexs: [],
+          //     end: true,
+          //   })
+          // } else {
+          //   agent.recal(
+          //     new Position(Math.floor(agent.x / 32), Math.floor(agent.y / 32)),
+          //     socket
+          //   )
+          // }
           if (agv.clientId) {
             console.log(
               `AAGV ${agv.clientId} đã va chạm với agent ${agent.clientId}`
@@ -112,14 +112,6 @@ export class Physic {
             ignoreAgent.add(agent2.serverId)
             console.log(
               `Agent ${agent.clientId} đã va chạm với agent ${agent2.clientId}`
-            )
-            socket.emit(
-              socketEvents.events.tellClientAgentsOverlapped,
-              agent.serverId
-            )
-            agent2.recal(
-              new Position(Math.floor(agent.x / 32), Math.floor(agent.y / 32)),
-              socket
             )
           }
         }

@@ -10,17 +10,34 @@ export class Player {
   public agv: Agv
   public autoAgvs: AutoAgv[]
   public agents: Agent[]
-  public groundPos: Position[]
-  public doorPos: Position[]
+  public groundPos: Position[] = []
+  public doorPos: Position[] = []
   public defaultListTile: Array<Array<null | string>> = []
   public listTile: Array<Array<null | string>> = []
+  public busyGrid: Record<number, Record<number, boolean>> = {}
+
+  setBusyGridState(x, y, state: boolean) {
+    if (!x || !y) return
+    if (!this.busyGrid[x]) this.busyGrid[x] = {}
+    this.busyGrid[x][y] = state
+  }
+  getBusyGridState(x, y) {
+    return this.busyGrid[x][y]
+  }
 
   constructor(groundPos: Position[], doorPos: Position[]) {
     this.agv = new Agv(0, 0, 0, 0, '', '', 0, 0)
     this.autoAgvs = []
     this.agents = []
-    this.groundPos = groundPos
     this.doorPos = doorPos
+    this.initgroundPos(groundPos)
+  }
+
+  initgroundPos(groundPos) {
+    this.groundPos = groundPos
+    groundPos.forEach((pos) => {
+      this.setBusyGridState(pos.x, pos.y, false)
+    })
   }
 
   public addGameObject(

@@ -159,7 +159,6 @@ export class AutoAgv extends Actor {
   }
 
   public update(): void {
-    console.log('updated!')
     if (this.isDisable) return
     super.update()
   }

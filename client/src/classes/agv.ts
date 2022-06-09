@@ -34,6 +34,7 @@ export class Agv extends Actor {
     action: 'hold', // hold, released
   }
   private isAgentOverlapsed = true
+  private curTile: { x: number; y: number }
 
   constructor(
     scene: MainScene,
@@ -48,6 +49,8 @@ export class Agv extends Actor {
     this.desX = desX
     this.desY = desY
     this.pathLayer = pathLayer
+    this.curTile = { x: x / 32, y: y / 32 }
+
     this.text = new Text(
       this.scene,
       this.x,
@@ -205,20 +208,7 @@ export class Agv extends Actor {
   update(): void {
     this.getBody().setVelocity(0)
     this.text.setPosition(this.x, this.y - this.height * 0.5)
-
     if (this.isDisable) return
-    // if (
-    //   Math.floor(this.x / 32) === 50 &&
-    //   this.y / 32 > 13 &&
-    //   this.y / 32 < 14
-    // ) {
-    //   this.overing = true
-    //   this.Toastcomplete()
-    //   setTimeout(() => {
-    //     this.isDisable = true
-    //   }, 2000)
-    //   return
-    // }
 
     // directions top, left, bottom, right
     let t, l, b, r
@@ -232,10 +222,27 @@ export class Agv extends Actor {
     this.playerControl.b = true
     this.playerControl.r = true
 
-    let tiles = this.getTilesWithin()
+    const tiles = this.getTilesWithin()
+    if (
+      tiles.length == 1 &&
+      (tiles[0].x != this.curTile.x || tiles[0].y != this.curTile.y)
+    ) {
+      this.getSnene().setBusyGridState(this.curTile.x, this.curTile.y, null)
+      this.curTile = { x: tiles[0].x, y: tiles[0].y }
+      this.getSnene().setBusyGridState(this.curTile.x, this.curTile.y, 'magv')
+    }
     for (let i = 0; i < tiles.length; i++) {
+      const objectName = this.getSnene().getBusyGridState(
+        tiles[i].x,
+        tiles[i].y
+      )
+      if (
+        objectName &&
+        this.getSnene().getBusyGridState(tiles[i].x, tiles[i].y) != 'magv'
+      )
+        return
+
       if (tiles[i].properties.direction == 'top') {
-        // current direction of the player
         b = false
         this.playerControl.b = false
         if (this.keyS?.isDown) {
