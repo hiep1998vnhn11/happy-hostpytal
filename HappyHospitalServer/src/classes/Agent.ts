@@ -5,6 +5,7 @@ import { Astar } from '../algorithm/AStarSearch'
 import { calPathAstar, calPathAstarGrid } from '../algorithm'
 import { Position } from './position'
 import * as socketEvents from '../socketEvents'
+import { AstarSearch } from 'src/algorithm/astar'
 
 export class Agent extends movingGameObject {
   public id: number
@@ -21,18 +22,23 @@ export class Agent extends movingGameObject {
     agentObject: AgentObject,
     groundPos: Position[],
     socket: Socket,
-    clientId,
-    desX,
-    desY
+    clientId: string,
+    desX: number,
+    desY: number,
+    astar: AstarSearch
   ) {
     super(x, y, sizeWidth, sizeHeight, serverId, clientId)
     this.id = agentObject.id
     this.desX = desX
     this.desY = desY
-    this.vertexs = calPathAstarGrid(
-      52,
-      28,
-      groundPos,
+    // this.vertexs = calPathAstarGrid(
+    //   52,
+    //   28,
+    //   groundPos,
+    //   new Position(agentObject.startPos.x, agentObject.startPos.y),
+    //   new Position(agentObject.endPos.x, agentObject.endPos.y)
+    // )
+    this.vertexs = astar.search(
       new Position(agentObject.startPos.x, agentObject.startPos.y),
       new Position(agentObject.endPos.x, agentObject.endPos.y)
     )

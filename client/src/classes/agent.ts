@@ -1,10 +1,10 @@
+import { AstarSearch } from './../algorithm/astar'
 import { Actor } from './actor'
 import { Position } from './position'
 import { Text } from './text'
 import uniqid from 'uniqid'
 import * as socketEvents from '../socketEvents'
 import { MainScene } from '../scenes'
-import { calPathAstarGrid } from '../algorithm'
 
 export class Agent extends Actor {
   private startPos: Position
@@ -83,83 +83,7 @@ export class Agent extends Actor {
     this.setVelocity(0, 0)
     this.eliminate()
   }
-
-  public goToDestinationByVertexs() {
-    this.agentText.setPosition(this.x, this.y - this.height * 0.5)
-    this.setVelocity(0, 0)
-    if (!this.active) {
-      return
-    }
-    if (!this.nextPos) {
-      this.complete()
-      return
-    }
-    const agentName = 'agent_' + this.id
-
-    if (
-      Math.abs(this.nextPos.x * 32 - this.x) > 1 ||
-      Math.abs(this.nextPos.y * 32 - this.y) > 1
-    ) {
-      const busyGridState = this.getSnene().getBusyGridState(
-        this.nextPos.x,
-        this.nextPos.y
-      )
-      if (busyGridState && busyGridState !== agentName) {
-        const split = busyGridState.split('_')
-        const object = split[0]
-        if (object !== 'agent') {
-          this.active = false
-          return this.recalculatePath(
-            this.currentPos.x,
-            this.currentPos.y,
-            this.nextPos
-          )
-        }
-        const agentId = +split[1] || 0
-        if (agentId > this.id) {
-          this.handleOverlap()
-          return
-          // socketEvents.socket.emit(socketEvents.events.agentRequestNewPath, {
-          //   id: this.serverId,
-          //   currentPos: this.currentPos,
-          //   endPos: this.endPos,
-          // })
-          // this.setVelocity(0, 0)
-          // return
-        } else {
-          this.active = false
-          return this.recalculatePath(
-            this.currentPos.x,
-            this.currentPos.y,
-            this.nextPos
-          )
-        }
-      }
-      this.getSnene().physics.moveTo(
-        this,
-        this.nextPos.x * 32,
-        this.nextPos.y * 32,
-        this.speed
-      )
-    } else {
-      this.getSnene().setBusyGridState(
-        this.currentPos.x,
-        this.currentPos.y,
-        null
-      )
-      this.currentPos = this.nextPos
-      this.nextPos = this.vertexs.pop()
-      if (this.nextPos) {
-        this.getSnene().setBusyGridState(
-          this.nextPos.x,
-          this.nextPos.y,
-          agentName
-        )
-      }
-    }
-  }
   preUpdate(): void {
-    // this.goToDestinationByVertexs()
     this.updatePre()
   }
 
@@ -174,6 +98,15 @@ export class Agent extends Actor {
   }
 
   public eliminate() {
+    this.getSnene().setBusyGridState(this.currentPos.x, this.currentPos.y, null)
+    if (this.nextPos) {
+      const nextName = this.getSnene().getBusyGridState(
+        this.nextPos.x,
+        this.nextPos.y
+      )
+      if (nextName && nextName === 'agent_' + this.id)
+        this.getSnene().setBusyGridState(this.nextPos.x, this.nextPos.y, null)
+    }
     this.getSnene().events.emit('destroyAgent', this)
     this.endText.destroy()
     this.agentText.destroy()
@@ -182,18 +115,19 @@ export class Agent extends Actor {
 
   public pause() {
     this.setVelocity(0, 0)
-    this.setActive(false)
+    this.active = false
   }
   public restart() {
-    this.setActive(true)
+    this.active = true
   }
 
   public handleOverlap() {
     this.setVelocity(0, 0)
-    this.setActive(false)
+    this.active = false
     if (this.activeTimer) clearTimeout(this.activeTimer)
     this.activeTimer = setTimeout(() => {
-      this.setActive(true)
+      this.active = true
+      this.activeTimer = 0
     }, 1000)
   }
 
@@ -203,27 +137,22 @@ export class Agent extends Actor {
     this.vertexs = path
     this.nextPos = this.vertexs.pop()
   }
-
   recalculatePath(x: number, y: number, excludedPos: Position) {
-    const clonePos = [...this.getSnene().groundPos].filter(
-      (i) => i.x != excludedPos.x || i.y != excludedPos.y
-    )
-    this.vertexs = calPathAstarGrid(
+    const astar = new AstarSearch(
       52,
       28,
-      clonePos,
-      new Position(x, y),
-      this.endPos
+      this.getSnene().groundPos,
+      this.getSnene().pathPos,
+      excludedPos
     )
+    this.vertexs = astar.search(new Position(x, y), this.endPos)
     this.active = true
-
     if (this.vertexs.length == 0) {
       return
     }
     this.agentText.setX(this.x)
     this.agentText.setY(this.y - 16)
-    this.currentPos = this.vertexs.pop()!
-    this.nextPos = this.currentPos
+    this.nextPos = this.vertexs.pop()!
     this.getSnene().setBusyGridState(
       this.currentPos.x,
       this.currentPos.y,
@@ -243,16 +172,14 @@ export class Agent extends Actor {
       Math.abs(this.nextPos.x * 32 - this.x) < 1 &&
       Math.abs(this.nextPos.y * 32 - this.y) < 1
     ) {
-      if (this.currentPos)
-        this.getSnene().setBusyGridState(
-          this.currentPos.x,
-          this.currentPos.y,
-          null
-        )
+      this.getSnene().setBusyGridState(
+        this.currentPos.x,
+        this.currentPos.y,
+        null
+      )
       this.currentPos = this.nextPos
       this.nextPos = this.vertexs.pop()
       if (!this.nextPos) return
-
       this.getSnene().setBusyGridState(
         this.currentPos.x,
         this.currentPos.y,
@@ -291,6 +218,12 @@ export class Agent extends Actor {
         const split = nextObjectName.split('_')
         const object = split[0]
         if (object !== 'agent') {
+          if (
+            this.nextPos.x === this.endPos.x &&
+            this.nextPos.y === this.endPos.y
+          ) {
+            return this.complete()
+          }
           return this.recalculatePath(
             this.currentPos.x,
             this.currentPos.y,
@@ -298,8 +231,22 @@ export class Agent extends Actor {
           )
         }
         const agentId = +split[1]
+        const agent = this.getSnene().getAgentByID(agentId)
         if (agentId > this.id) {
+          if (!agent) return this.handleOverlap()
+          const endPos = agent.getEndPos()
+          if (endPos.x === this.nextPos.x && endPos.y === this.nextPos.y)
+            return this.recalculatePath(
+              this.currentPos.x,
+              this.currentPos.y,
+              this.nextPos
+            )
           return this.handleOverlap()
+        }
+        if (agent) {
+          const endPos = agent.getEndPos()
+          if (endPos.x === this.nextPos.x && endPos.y === this.nextPos.y)
+            return this.handleOverlap()
         }
         return this.recalculatePath(
           this.currentPos.x,

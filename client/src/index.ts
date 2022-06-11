@@ -46,7 +46,6 @@ const gameConfig: Types.Core.GameConfig = {
     ],
   },
 }
-
 window.sizeChanged = () => {
   if (window.game.isBooted) {
     setTimeout(() => {
@@ -62,3 +61,6 @@ window.sizeChanged = () => {
 window.onresize = () => window.sizeChanged()
 
 window.game = new Game(gameConfig)
+setTimeout(() => {
+  ;(window as any).snene = window.game.scene.scenes[0]
+}, 1000)

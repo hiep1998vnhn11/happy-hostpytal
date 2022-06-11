@@ -5,6 +5,7 @@ import { GameObject } from './GameObject'
 const socketEvents = require('../socketEvents')
 import { Position } from './position'
 import { Socket } from 'socket.io'
+import { AstarSearch } from '../algorithm/astar'
 
 export class Player {
   public agv: Agv
@@ -15,6 +16,7 @@ export class Player {
   public defaultListTile: Array<Array<null | string>> = []
   public listTile: Array<Array<null | string>> = []
   public busyGrid: Record<number, Record<number, boolean>> = {}
+  public astar: AstarSearch
 
   setBusyGridState(x, y, state: boolean) {
     if (!x || !y) return
@@ -25,19 +27,12 @@ export class Player {
     return this.busyGrid[x][y]
   }
 
-  constructor(groundPos: Position[], doorPos: Position[]) {
+  constructor(groundPos: Position[], doorPos: Position[], pathPos: Position[]) {
     this.agv = new Agv(0, 0, 0, 0, '', '', 0, 0)
     this.autoAgvs = []
     this.agents = []
     this.doorPos = doorPos
-    this.initgroundPos(groundPos)
-  }
-
-  initgroundPos(groundPos) {
-    this.groundPos = groundPos
-    groundPos.forEach((pos) => {
-      this.setBusyGridState(pos.x, pos.y, false)
-    })
+    this.astar = new AstarSearch(52, 28, groundPos, pathPos)
   }
 
   public addGameObject(
@@ -86,8 +81,9 @@ export class Player {
               this.groundPos,
               socket,
               clientId || '',
-              desX,
-              desY
+              desX || 0,
+              desY || 0,
+              this.astar
             )
           )
         break

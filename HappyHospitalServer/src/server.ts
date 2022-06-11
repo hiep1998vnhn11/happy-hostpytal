@@ -41,14 +41,16 @@ io.on('connection', (socket: Socket) => {
   socket.on(
     socketEvents.events.newClient,
     ({
-      groundPos,
-      doorPos,
+      groundPos = [],
+      doorPos = [],
+      pathPos = [],
     }: {
       groundPos: Position[]
       doorPos: Position[]
+      pathPos: Position[]
     }) => {
       console.log('new client connected!, with id: ', socket.id)
-      players[socket.id] = new Player(groundPos, doorPos)
+      players[socket.id] = new Player(groundPos, doorPos, pathPos)
     }
   )
 

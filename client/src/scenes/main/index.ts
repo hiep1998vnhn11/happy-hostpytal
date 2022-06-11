@@ -51,7 +51,7 @@ export class MainScene extends Scene {
   private noPathLayer!: Tilemaps.TilemapLayer
   private bedLayer!: Tilemaps.TilemapLayer
   public groundPos!: Position[]
-  private pathPos!: Position[]
+  public pathPos!: Position[]
   private listTile: Position[][][]
   private saveButton?: Phaser.GameObjects.Text
   private loadButton?: Phaser.GameObjects.Text
@@ -68,7 +68,7 @@ export class MainScene extends Scene {
   private _harmfullness: number = 0
   private agents!: Agent[]
   private rememberAgents: ImportAgent[] = []
-  private MAX_AGENT: number = 10
+  private MAX_AGENT: number = 15
   private desDom?: Phaser.GameObjects.DOMElement
   public mapOfExits: Map<string, number[]> = new Map([
     ['Gate1', [MainScene.EXIT_X, MainScene.EXIT_Y[0], 0]],
@@ -80,11 +80,16 @@ export class MainScene extends Scene {
 
   public setBusyGridState(x: number, y: number, state: string | null) {
     if (!x || !y) return
+    if (
+      x === MainScene.EXIT_X &&
+      (y === MainScene.EXIT_Y[0] || y === MainScene.EXIT_Y[1])
+    )
+      return
     if (!this.busyGrid[x]) this.busyGrid[x] = {}
     this.busyGrid[x][y] = state
   }
   getBusyGridState(x: number, y: number) {
-    return this.busyGrid[x][y]
+    return this.busyGrid[x]?.[y] || null
   }
 
   constructor() {
@@ -125,13 +130,11 @@ export class MainScene extends Scene {
     this.initMap()
     this.initTileMap()
     this.initGraph()
-    this.groundPos.forEach((pos) => {
-      this.setBusyGridState(pos.x, pos.y, null)
-    })
     socketEvents.socket.emit(socketEvents.events.newClient, {
       groundPos: this.groundPos,
       doorPos: this.doorPos,
       listTile: this.listTile,
+      pathPos: this.pathPos,
     }) // vi du ket noi client va socket
     this.spaceGraph = new Graph(52, 28, this.listTile, this.pathPos)
     this.emergencyGraph = new EmergencyGraph(
@@ -321,7 +324,9 @@ export class MainScene extends Scene {
     this.MAX_AGENT = num
     alert('Thiết lập số Agents thành công!')
   }
-
+  public get harmfullness(): number {
+    return this._harmfullness
+  }
   public static formatHarmfullness(harmfullness: number): string {
     let text = harmfullness.toFixed(3).replace(/\d(?=(\d{3})+\.)/g, '$&,')
 
@@ -332,6 +337,12 @@ export class MainScene extends Scene {
       }
     }
     return text
+  }
+  public set harmfullness(value: number) {
+    this._harmfullness = value
+    this.harmfulTable?.setText(
+      'H.ness: ' + MainScene.formatHarmfullness(this._harmfullness)
+    )
   }
   createAgents(numAgentInit: number, time: number) {
     // khoi tao numAgentInit dau tien
