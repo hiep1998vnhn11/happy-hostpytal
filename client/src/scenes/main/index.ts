@@ -59,7 +59,7 @@ export class MainScene extends Scene {
   private mapData: InitData = {}
   private spaceGraph?: Graph
   private emergencyGraph?: EmergencyGraph
-  private doorPos!: Position[]
+  public doorPos: Position[]
   private timeText?: Phaser.GameObjects.Text
   public sec: number = 0
   public timeTable?: Phaser.GameObjects.Text
@@ -996,5 +996,9 @@ export class MainScene extends Scene {
       agv.getAgvID() === id ? (autoAgv = agv) : null
     )
     return autoAgv
+  }
+  public getRandomAgentEndPos() {
+    const rand = Math.floor(Math.random() * this.doorPos.length)
+    return this.doorPos[rand]
   }
 }

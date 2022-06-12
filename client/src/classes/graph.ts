@@ -136,13 +136,13 @@ export class Graph {
     /**
      * Khoi tao cac bien trong A*
      */
-    let openSet: Node2D[] = []
-    let closeSet: Node2D[] = []
-    let path: Node2D[] = []
-    let astar_f: number[][] = new Array(this.width)
-    let astar_g: number[][] = new Array(this.width)
-    let astar_h: number[][] = new Array(this.width)
-    let previous: Node2D[][] = new Array(this.width)
+    const openSet: Node2D[] = []
+    const closeSet: Node2D[] = []
+    const path: Node2D[] = []
+    const astar_f: number[][] = new Array(this.width)
+    const astar_g: number[][] = new Array(this.width)
+    const astar_h: number[][] = new Array(this.width)
+    const previous: Node2D[][] = new Array(this.width)
     for (let i = 0; i < this.width; i++) {
       astar_f[i] = new Array(this.height)
       astar_g[i] = new Array(this.height)
@@ -183,7 +183,7 @@ export class Graph {
       }
       openSet.splice(winner, 1)
       closeSet.push(current)
-      let neighbors = [
+      const neighbors = [
         current.nodeN,
         current.nodeE,
         current.nodeS,

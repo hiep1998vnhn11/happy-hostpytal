@@ -22,6 +22,9 @@ export class Agent extends Actor {
   public currentPos: Position
   public nextPos: Position | undefined = undefined
 
+  private stopTime: number = 0
+  private stopTimer: number = 0
+
   constructor(
     scene: MainScene,
     startPos: Position,
@@ -84,6 +87,14 @@ export class Agent extends Actor {
     this.eliminate()
   }
   preUpdate(): void {
+    //Sau 10s Không di chuyển thì đổi lại điểm đến
+    if (this.stopTimer && this.stopTime > 10) {
+      const newEndPosition = this.getSnene().getRandomAgentEndPos()
+      this.endPos = newEndPosition
+      this.stopTime = 0
+      clearInterval(this.stopTimer)
+      return this.recalculatePath(this.x, this.y, this.currentPos)
+    }
     this.updatePre()
   }
 
@@ -129,6 +140,11 @@ export class Agent extends Actor {
       this.active = true
       this.activeTimer = 0
     }, 1000)
+    if (!this.stopTimer) {
+      this.stopTimer = setInterval(() => {
+        this.stopTime++
+      }, 1000)
+    }
   }
 
   public setPath(path: Position[]) {
@@ -165,7 +181,10 @@ export class Agent extends Actor {
       return
     }
     const agentName = 'agent_' + this.id
-    this.agentText.setPosition(this.x, this.y - this.height * 0.5)
+    this.agentText.setPosition(
+      this.x + this.height * 0.15,
+      this.y - this.height * 0.5
+    )
     this.setVelocity(0, 0)
     if (
       this.nextPos &&
@@ -258,6 +277,10 @@ export class Agent extends Actor {
     }
   }
   move() {
+    if (this.stopTimer) {
+      clearInterval(this.stopTimer)
+      this.stopTimer = 0
+    }
     this.nextPos
       ? this.getSnene().physics.moveTo(
           this,
