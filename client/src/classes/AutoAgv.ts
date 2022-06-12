@@ -112,7 +112,8 @@ export class AutoAgv extends Actor {
   }
 
   public calPathAStar(start: Node2D, end: Node2D): Node2D[] | null {
-    return this.graph.calPathAStar(start, end)
+    const result = this.graph.calPathAStar(start, end)
+    return result
   }
 
   public changeTarget(): void {

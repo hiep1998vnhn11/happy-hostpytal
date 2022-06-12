@@ -5,6 +5,8 @@ export enum ModeOfPathPlanning {
   FRANSEN,
   PROPOSE,
 }
+export let MODE = ModeOfPathPlanning.FRANSEN
+
 export class Constant {
   public static get DURATION(): number {
     return 4
@@ -29,6 +31,10 @@ export class Constant {
     var mDisplay = m >= 10 ? m : '0' + m
     var sDisplay = s >= 10 ? s : '0' + s
     return hDisplay + ':' + mDisplay + ':' + sDisplay
+  }
+
+  public static changeMode(value: ModeOfPathPlanning) {
+    MODE = value
   }
 
   public static validDestination(

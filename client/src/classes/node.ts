@@ -1,4 +1,4 @@
-import { Constant, ModeOfPathPlanning } from '../Constant'
+import { MODE, ModeOfPathPlanning } from '../Constant'
 
 export enum StateOfNode2D {
   EMPTY,
@@ -57,7 +57,7 @@ export class Node2D {
   }
 
   public getW(): number {
-    if (Constant.MODE == ModeOfPathPlanning.FRANSEN) return this.w
+    if (MODE == ModeOfPathPlanning.FRANSEN) return this.w
     else return this.weight
   }
 

@@ -187,6 +187,7 @@ export class MainScene extends Scene {
     const setNumAgentsDOM = this.add
       .dom(1790, 240)
       .createFromCache('setNumAgentForm')
+
     setNumAgentsDOM.setPerspective(800)
     setNumAgentsDOM.addListener('click')
     setNumAgentsDOM.on('click', function (this: any, event: any) {
@@ -203,6 +204,19 @@ export class MainScene extends Scene {
       }
     })
 
+    const vm = this
+    const selectAgmOption = setNumAgentsDOM.getChildByID(
+      'select-agm'
+    ) as HTMLOptionElement
+    if (selectAgmOption) {
+      selectAgmOption.addEventListener('change', () => {
+        Constant.changeMode(
+          selectAgmOption.value === 'FRANSEN'
+            ? ModeOfPathPlanning.FRANSEN
+            : ModeOfPathPlanning.PROPOSE
+        )
+      })
+    }
     const numOfRealEdges = Constant.numberOfEdges(52, 28, this.graph.nodes)
     const numOfAllEdges =
       Constant.numberOfEdges(52, 28, this.emergencyGraph.nodes) +
