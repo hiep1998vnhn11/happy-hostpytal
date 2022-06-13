@@ -15,6 +15,7 @@ export const events = {
   tellClientAgentsOverlapped: 'tell-client-agents-overlapped',
 
   onClientLoadData: 'on-client-load-data',
+  onClientChangeAgvAlgorithm: 'on-client-change-agv-algorithm',
   onClientSaveData: 'on-client-save-data',
   onChangeMaxAgent: 'on-change-max-agent',
   clientFinish: 'client-finish',

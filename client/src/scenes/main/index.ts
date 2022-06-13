@@ -204,17 +204,21 @@ export class MainScene extends Scene {
       }
     })
 
-    const vm = this
     const selectAgmOption = setNumAgentsDOM.getChildByID(
       'select-agm'
     ) as HTMLOptionElement
     if (selectAgmOption) {
       selectAgmOption.addEventListener('change', () => {
+        socketEvents.socket.emit(
+          socketEvents.events.onClientChangeAgvAlgorithm,
+          selectAgmOption.value
+        )
         Constant.changeMode(
           selectAgmOption.value === 'FRANSEN'
             ? ModeOfPathPlanning.FRANSEN
             : ModeOfPathPlanning.PROPOSE
         )
+        alert('Đã đổi thuật toán thành công!')
       })
     }
     const numOfRealEdges = Constant.numberOfEdges(52, 28, this.graph.nodes)
@@ -649,7 +653,7 @@ export class MainScene extends Scene {
               }
               if (this.mapData.autoAgvs && this.mapData.autoAgvs.length > 0) {
                 this.mapData.autoAgvs.forEach((agv) => {
-                  const autoAgv = new AutoAgv(
+                  new AutoAgv(
                     this,
                     Math.floor(agv.x / 32),
                     Math.floor(agv.y / 32),
@@ -657,7 +661,6 @@ export class MainScene extends Scene {
                     agv.endY / 32,
                     this.graph
                   )
-                  this.listenAutoAgvOverlap(autoAgv)
                 })
               }
               if (this.mapData.agents && this.mapData.agents.length > 0) {
@@ -858,34 +861,8 @@ export class MainScene extends Scene {
         )
       }
       this.autoAgvs.add(tempAgv)
-      // this.listenAutoAgvOverlap(tempAgv)
     }
   }
-  private listenAutoAgvOverlap(autoAgv: AutoAgv) {
-    this.physics.add.overlap(autoAgv, this.agv, () => {
-      if (autoAgv.getExpectedTime() < autoAgv.getExpectedTime()) {
-        autoAgv.handleOverlap()
-      } else {
-        this.agv.handleOverlap(false)
-      }
-    })
-    this.autoAgvs.forEach((item) => {
-      this.physics.add.overlap(autoAgv, item, () => {
-        if (autoAgv.getExpectedTime() < item.getExpectedTime()) {
-          item.handleOverlap()
-        } else {
-          autoAgv.handleOverlap()
-        }
-      })
-    })
-    this.agents.forEach((item) => {
-      this.physics.add.overlap(autoAgv, item, () => {
-        //TODO handle handleOverlap agv
-        autoAgv.handleOverlap()
-      })
-    })
-  }
-
   public get graph(): Graph {
     if (Constant.MODE == ModeOfPathPlanning.FRANSEN) {
       return this.spaceGraph as Graph

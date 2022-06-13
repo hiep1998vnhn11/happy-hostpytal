@@ -12,6 +12,7 @@ export const events = {
   agentRequestNewPath: 'agent-request-new-path',
 
   sendAgentPathToClient: 'send-agent-path-to-client',
+  onClientChangeAgvAlgorithm: 'on-client-change-agv-algorithm',
   tellClientAgentsOverlapped: 'tell-client-agents-overlapped',
   onClientLoadData: 'on-client-load-data',
   onClientSaveData: 'on-client-save-data',

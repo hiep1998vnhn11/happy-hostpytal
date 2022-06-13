@@ -121,6 +121,9 @@ io.on('connection', (socket: Socket) => {
     console.log(`Client đã tải dữ liệu!`)
     console.log(data)
   })
+  socket.on(socketEvents.events.onClientChangeAgvAlgorithm, (alm) => {
+    console.log('Client đã thay đổi thuật toán AGV thành ' + alm)
+  })
   socket.on(
     socketEvents.events.updateGameObjectsOnServer,
     (

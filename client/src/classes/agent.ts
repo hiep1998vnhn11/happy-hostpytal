@@ -251,8 +251,11 @@ export class Agent extends Actor {
         }
         const agentId = +split[1]
         const agent = this.getSnene().getAgentByID(agentId)
+        if (!agent) {
+          this.getSnene().setBusyGridState(this.nextPos.x, this.nextPos.y, null)
+          return this.move()
+        }
         if (agentId > this.id) {
-          if (!agent) return this.handleOverlap()
           const endPos = agent.getEndPos()
           if (endPos.x === this.nextPos.x && endPos.y === this.nextPos.y)
             return this.recalculatePath(
@@ -262,11 +265,9 @@ export class Agent extends Actor {
             )
           return this.handleOverlap()
         }
-        if (agent) {
-          const endPos = agent.getEndPos()
-          if (endPos.x === this.nextPos.x && endPos.y === this.nextPos.y)
-            return this.handleOverlap()
-        }
+        const endPos = agent.getEndPos()
+        if (endPos.x === this.nextPos.x && endPos.y === this.nextPos.y)
+          return this.handleOverlap()
         return this.recalculatePath(
           this.currentPos.x,
           this.currentPos.y,
