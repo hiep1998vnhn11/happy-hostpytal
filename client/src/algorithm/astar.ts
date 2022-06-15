@@ -174,6 +174,12 @@ class Graph {
     if (excludedPos) {
       this.grid[excludedPos.x][excludedPos.y].weight = 0
     }
+
+    // Cổng T
+    this.grid[50][13].weight = 0
+    this.grid[50][14].weight = 0
+    this.grid[1][14].weight = 0
+    this.grid[1][13].weight = 0
   }
   clearnDirty() {
     for (const node of this.dirtyNodes) {

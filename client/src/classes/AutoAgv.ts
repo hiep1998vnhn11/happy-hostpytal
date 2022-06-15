@@ -42,7 +42,7 @@ export class AutoAgv extends Actor {
   public waitT: number
   public stepsMoved: number
   public timesMoved: number
-  public hybridState: HybridState | undefined
+  public hybridState: RunningState | undefined
   public endX: number
   public endY: number
   public firstText?: Text
@@ -202,6 +202,6 @@ export class AutoAgv extends Actor {
     this.disableTimer = setTimeout(() => {
       this.isDisable = false
       this.disableTimer = null
-    }, 1000)
+    }, 3000)
   }
 }

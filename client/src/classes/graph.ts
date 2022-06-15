@@ -178,7 +178,6 @@ export class Graph {
           cur = previous[cur.x][cur.y]
         }
         path.reverse()
-        //console.assert(lengthOfPath == path.length, "path has length: " + path.length + " instead of " + lengthOfPath);
         return path
       }
       openSet.splice(winner, 1)

@@ -5,7 +5,7 @@ import { Position } from '../../classes/position'
 import { AutoAgv, AutoAgvJSON } from '../../classes/AutoAgv'
 import { Graph } from '../../classes/graph'
 import { RandomDistribution } from '../../algorithm/random'
-import { Constant, ModeOfPathPlanning } from '../../Constant'
+import { Constant, ModeOfPathPlanning, MODE } from '../../Constant'
 import { EmergencyGraph } from '../../classes/emergencyGraph'
 import { Forcasting } from '../../classes/statistic/forcasting'
 import * as socketEvents from '../../socketEvents'
@@ -78,6 +78,10 @@ export class MainScene extends Scene {
   public forcasting?: Forcasting
   public busyGrid: Record<number, Record<number, string | null>> = {}
 
+  public getMainAgv(): Agv {
+    return this.agv
+  }
+
   public setBusyGridState(x: number, y: number, state: string | null) {
     if (!x || !y) return
     if (
@@ -123,13 +127,13 @@ export class MainScene extends Scene {
     })
     this.load.image('instruction', 'sprites/instruction.png')
     this.load.html('setNumAgentForm', 'setNumAgents.html')
+    this.load.html('setAlgorithm', 'setAlgorithm.html')
     this.load.html('des', 'des.html')
   }
 
   create(): void {
     this.initMap()
     this.initTileMap()
-    this.initGraph()
     socketEvents.socket.emit(socketEvents.events.newClient, {
       groundPos: this.groundPos,
       doorPos: this.doorPos,
@@ -188,6 +192,11 @@ export class MainScene extends Scene {
       .dom(1790, 240)
       .createFromCache('setNumAgentForm')
 
+    const setAlgorithm = this.add
+      .dom(1790, 25)
+      .createFromCache('setAlgorithm')
+      .setPerspective(800)
+
     setNumAgentsDOM.setPerspective(800)
     setNumAgentsDOM.addListener('click')
     setNumAgentsDOM.on('click', function (this: any, event: any) {
@@ -204,7 +213,7 @@ export class MainScene extends Scene {
       }
     })
 
-    const selectAgmOption = setNumAgentsDOM.getChildByID(
+    const selectAgmOption = setAlgorithm.getChildByID(
       'select-agm'
     ) as HTMLOptionElement
     if (selectAgmOption) {
@@ -415,7 +424,7 @@ export class MainScene extends Scene {
 
       this.count++
       if (this.count == 2) {
-        this.createRandomAutoAgv()
+        this.autoAgvs.size < this.MAX_AGENT && this.createRandomAutoAgv()
         this.count = 0
       }
     }, time)
@@ -495,31 +504,35 @@ export class MainScene extends Scene {
   }
 
   addButton(): void {
-    this.saveButton = this.add.text(window.innerWidth - 200, 50, 'Save data', {
+    this.saveButton = this.add.text(window.innerWidth - 250, 50, 'Save data', {
       backgroundColor: '#eee',
-      padding: { bottom: 5, top: 5, left: 10, right: 10 },
+      padding: { bottom: 5, top: 5, left: 60, right: 10 },
       color: '#000',
-      fontSize: '24px',
+      fontSize: '22px',
       fontStyle: 'bold',
+      fixedWidth: 240,
     })
-    this.loadButton = this.add.text(window.innerWidth - 200, 110, 'Load data', {
+    this.loadButton = this.add.text(window.innerWidth - 250, 90, 'Load data', {
       backgroundColor: '#eee',
-      padding: { bottom: 5, top: 5, left: 10, right: 10 },
+      padding: { bottom: 5, top: 5, left: 60, right: 10 },
       color: '#000',
       fontSize: '24px',
+      fixedWidth: 240,
       fontStyle: 'bold',
     })
     this.loadVadereButton = this.add.text(
       window.innerWidth - 250,
-      170,
+      140,
       'Load data from Vadere',
       {
+        fixedWidth: 240,
         backgroundColor: '#eee',
-        padding: { bottom: 5, top: 5, left: 10, right: 10 },
+        padding: { bottom: 5, top: 10, left: 10, right: 10 },
         color: '#000',
-        fontSize: '18px',
+        fontSize: '17px',
         fontStyle: 'bold',
         align: 'left',
+        fixedHeight: 35,
       }
     )
 
@@ -864,26 +877,10 @@ export class MainScene extends Scene {
     }
   }
   public get graph(): Graph {
-    if (Constant.MODE == ModeOfPathPlanning.FRANSEN) {
-      return this.spaceGraph as Graph
-    } else {
-      return this.emergencyGraph as Graph
-    }
+    return MODE == ModeOfPathPlanning.FRANSEN
+      ? this.spaceGraph!
+      : this.emergencyGraph!
   }
-
-  public initGraph(): void {
-    if (Constant.MODE == ModeOfPathPlanning.FRANSEN) {
-      this.spaceGraph = new Graph(52, 28, this.listTile, this.pathPos)
-    } else {
-      this.emergencyGraph = new EmergencyGraph(
-        52,
-        28,
-        this.listTile,
-        this.pathPos
-      )
-    }
-  }
-
   private checkTilesUndirection(
     tileA: Tilemaps.Tile,
     tileB: Tilemaps.Tile

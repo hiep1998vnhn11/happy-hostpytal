@@ -236,11 +236,32 @@ export class Agv extends Actor {
         tiles[i].x,
         tiles[i].y
       )
-      if (
-        objectName &&
-        this.getSnene().getBusyGridState(tiles[i].x, tiles[i].y) != 'magv'
-      )
-        return
+      if (objectName && objectName != 'magv') {
+        const splitName = objectName.split('_')
+        if (splitName[0] == 'agent') {
+          const agent = this.getSnene().getAgentByID(+splitName[1])
+          if (agent) {
+            if (
+              agent.nextPos?.x === tiles[i].x &&
+              agent.nextPos?.y === tiles[i].y
+            ) {
+              this.overlapCount++
+              this.isAgentOverlapsed = true
+              this.ToastOverLay()
+            } else {
+              this.getSnene().setBusyGridState(tiles[i].x, tiles[i].y, 'magv')
+            }
+          } else
+            this.getSnene().setBusyGridState(tiles[i].x, tiles[i].y, 'magv')
+        } else {
+          const autoAgv = this.getSnene().getAgvById(+splitName[1])
+          if (autoAgv) {
+            if (autoAgv.getExpectedTime() < this.getExpectedTime()) return
+            this.getSnene().setBusyGridState(tiles[i].x, tiles[i].y, 'magv')
+          } else
+            this.getSnene().setBusyGridState(tiles[i].x, tiles[i].y, 'magv')
+        }
+      }
 
       if (tiles[i].properties.direction == 'top') {
         b = false

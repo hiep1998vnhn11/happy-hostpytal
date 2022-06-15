@@ -63,10 +63,12 @@ export class RunningState extends HybridState {
       agv.setVelocity(0, 0)
       if (agv.waitT) return
       agv.waitT = performance.now()
-      ;(agv.scene as MainScene).forcasting?.addDuration(
-        agv.getAgvID(),
-        new WaitingDuration(Math.floor(agv.waitT / 1000))
-      )
+      agv
+        .getSnene()
+        .forcasting?.addDuration(
+          agv.getAgvID(),
+          new WaitingDuration(Math.floor(agv.waitT / 1000))
+        )
     } else {
       /*
        * Nếu tất cả các actor đều cách autoAgv một khoảng cách an toàn
@@ -96,15 +98,42 @@ export class RunningState extends HybridState {
         const nextObjectName = agv
           .getSnene()
           .getBusyGridState(nodeNext.x, nodeNext.y)
-        if (nextObjectName) return
+        if (nextObjectName) {
+          const splitName = nextObjectName.split('_')
+          const firstObject = splitName[0]
+          if (firstObject === 'agent') {
+            const agent = agv.getSnene().getAgentByID(+splitName[1])
+            if (agent)
+              if (
+                agent.nextPos?.x === nodeNext.x &&
+                agent.nextPos?.y === nodeNext.y
+              )
+                return
+            agv.getSnene().setBusyGridState(nodeNext.x, nodeNext.y, null)
+            agv.scene.physics.moveTo(agv, nodeNext.x * 32, nodeNext.y * 32, 32)
+          } else if (firstObject === 'agv') {
+            const busyAgv = agv.getSnene().getAgvById(+splitName[1])
+            if (busyAgv) {
+              if (busyAgv.getExpectedTime() < agv.getExpectedTime()) return
+              busyAgv.handleOverlap()
+            }
+            agv.getSnene().setBusyGridState(nodeNext.x, nodeNext.y, null)
+            agv.scene.physics.moveTo(agv, nodeNext.x * 32, nodeNext.y * 32, 32)
+          } else {
+            const mAgv = agv.getSnene().getMainAgv()
+            if (mAgv.getExpectedTime() < agv.getExpectedTime()) return
+            mAgv.handleOverlap(false)
+          }
+          return
+        }
         agv.scene.physics.moveTo(agv, nodeNext.x * 32, nodeNext.y * 32, 32)
       } else {
         /**
          * Khi đã đến nút tiếp theo thì cập nhật trạng thái
          * cho nút trước đó, nút hiện tại và Agv
          */
-        agv.getSnene().setBusyGridState(agv.curNode.x, agv.curNode.y, null)
         agv.curNode.setState(StateOfNode2D.EMPTY)
+        agv.getSnene().setBusyGridState(agv.curNode.x, agv.curNode.y, null)
         agv.curNode = nodeNext
         agv
           .getSnene()

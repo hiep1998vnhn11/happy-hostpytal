@@ -18,10 +18,6 @@ export class Constant {
   public static get DELTA_T(): number {
     return 10
   }
-  public static get MODE(): ModeOfPathPlanning {
-    return ModeOfPathPlanning.FRANSEN
-  }
-
   public static secondsToHMS(seconds: number): string {
     var h = Math.floor((seconds % (3600 * 24)) / 3600)
     var m = Math.floor((seconds % 3600) / 60)

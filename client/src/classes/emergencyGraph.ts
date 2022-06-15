@@ -11,16 +11,16 @@ export class EmergencyGraph extends Graph {
     height: number,
     danhsachke: Position[][][],
     pathPos: Position[]
-    //scene: MainScene
   ) {
-    super(width, height, danhsachke, pathPos /*, scene*/)
+    super(width, height, danhsachke, pathPos)
     this.virtualNodes = new Array(width)
     for (let i = 0; i < width; i++) {
       this.virtualNodes[i] = []
       for (let j = 0; j < height; j++) {
-        this.virtualNodes[i][j] = new Node2D(i, j, true) //new VirtualNode(i, j, true);
+        this.virtualNodes[i][j] = new Node2D(i, j, true)
       }
     }
+
     for (let i = 0; i < width; i++) {
       for (let j = 0; j < height; j++) {
         for (let k = 0; k < danhsachke[i][j].length; k++) {
@@ -124,7 +124,6 @@ export class EmergencyGraph extends Graph {
           cur = previous[cur.x][cur.y]
         }
         path.reverse()
-        //console.assert(lengthOfPath == path.length, "path has length: " + path.length + " instead of " + lengthOfPath);
         return path
       }
       openSet.splice(winner, 1)
