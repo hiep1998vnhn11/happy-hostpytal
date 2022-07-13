@@ -100,7 +100,7 @@ export class EmergencyGraph extends Graph {
         astar_h[i][j] = 0
       }
     }
-    let lengthOfPath: number = 1
+
     /**
      * Thuat toan
      */
@@ -152,7 +152,7 @@ export class EmergencyGraph extends Graph {
               timexoay = 1
             }
             let tempG =
-              astar_g[current.x][current.y] + 1 + current.getW() + timexoay
+              astar_g[current.x][current.y] + 1 + current.weight + timexoay
             if (super.isInclude(neighbor, openSet)) {
               if (tempG < astar_g[neighbor.x][neighbor.y]) {
                 astar_g[neighbor.x][neighbor.y] = tempG
@@ -160,7 +160,6 @@ export class EmergencyGraph extends Graph {
             } else {
               astar_g[neighbor.x][neighbor.y] = tempG
               openSet.push(neighbor)
-              lengthOfPath++
             }
             astar_h[neighbor.x][neighbor.y] = this.heuristic(neighbor, end)
             astar_f[neighbor.x][neighbor.y] =

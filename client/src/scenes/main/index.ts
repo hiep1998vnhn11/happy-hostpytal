@@ -68,7 +68,7 @@ export class MainScene extends Scene {
   private _harmfullness: number = 0
   private agents!: Agent[]
   private rememberAgents: ImportAgent[] = []
-  private MAX_AGENT: number = 15
+  private MAX_AGENT: number = 10
   private desDom?: Phaser.GameObjects.DOMElement
   public mapOfExits: Map<string, number[]> = new Map([
     ['Gate1', [MainScene.EXIT_X, MainScene.EXIT_Y[0], 0]],
@@ -140,13 +140,8 @@ export class MainScene extends Scene {
       listTile: this.listTile,
       pathPos: this.pathPos,
     }) // vi du ket noi client va socket
-    this.spaceGraph = new Graph(52, 28, this.listTile, this.pathPos)
-    this.emergencyGraph = new EmergencyGraph(
-      52,
-      28,
-      this.listTile,
-      this.pathPos
-    )
+
+    // init Graph
 
     this.desDom = this.add.dom(1790, 600).createFromCache('des')
     this.desDom.setPerspective(800)
@@ -189,11 +184,10 @@ export class MainScene extends Scene {
     }, 1000)
 
     const setNumAgentsDOM = this.add
-      .dom(1790, 240)
+      .dom(window.innerWidth - 130, 240)
       .createFromCache('setNumAgentForm')
-
     const setAlgorithm = this.add
-      .dom(1790, 25)
+      .dom(window.innerWidth - 130, 25)
       .createFromCache('setAlgorithm')
       .setPerspective(800)
 
@@ -212,7 +206,6 @@ export class MainScene extends Scene {
         }
       }
     })
-
     const selectAgmOption = setAlgorithm.getChildByID(
       'select-agm'
     ) as HTMLOptionElement
@@ -222,14 +215,26 @@ export class MainScene extends Scene {
           socketEvents.events.onClientChangeAgvAlgorithm,
           selectAgmOption.value
         )
-        Constant.changeMode(
-          selectAgmOption.value === 'FRANSEN'
-            ? ModeOfPathPlanning.FRANSEN
-            : ModeOfPathPlanning.PROPOSE
-        )
+        // Constant.changeMode(
+        //   selectAgmOption.value === 'FRANSEN'
+        //     ? ModeOfPathPlanning.FRANSEN
+        //     : ModeOfPathPlanning.PROPOSE
+        // )
         alert('Đã đổi thuật toán thành công!')
       })
     }
+    this.spaceGraph = new Graph(52, 28, this.listTile, this.pathPos)
+    this.emergencyGraph = new EmergencyGraph(
+      52,
+      28,
+      this.listTile,
+      this.pathPos
+    )
+    console.log(
+      Constant.numberOfEdges(52, 28, this.emergencyGraph.nodes),
+      Constant.numberOfEdges(52, 28, this.emergencyGraph.virtualNodes)
+    )
+    console.log(Constant.numberOfEdges(52, 28, this.graph.nodes))
     const numOfRealEdges = Constant.numberOfEdges(52, 28, this.graph.nodes)
     const numOfAllEdges =
       Constant.numberOfEdges(52, 28, this.emergencyGraph.nodes) +
@@ -447,29 +452,6 @@ export class MainScene extends Scene {
     const agent = new Agent(this, startPos, endPos, id)
     agent.setPushable(false)
     this.physics.add.collider(agent, this.roomLayer)
-
-    // this.physics.add.overlap(this.agv, agent, () => {
-    //   agent.handleOverlap()
-    //   this.agv.handleOverlap()
-    // })
-    // this.autoAgvs.forEach((item) => {
-    //   item &&
-    //     this.physics.add.overlap(agent, item, () => {
-    //       item.freeze(agent)
-    //     })
-    // })
-    // this.agents.forEach((item) => {
-    //   this.physics.add.overlap(agent, item, () => {
-    //     const r = Math.random()
-    //     if (r < 0.5) {
-    //       agent.handleOverlap(true)
-    //       item.handleOverlap()
-    //     } else {
-    //       item.handleOverlap(true)
-    //       agent.handleOverlap()
-    //     }
-    //   })
-    // })
     this.agents.push(agent)
     this.graph?.setAgents(this.agents)
   }

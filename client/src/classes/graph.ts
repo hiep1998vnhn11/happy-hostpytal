@@ -2,7 +2,6 @@ import { Position } from './position'
 import { Node2D, StateOfNode2D } from './node'
 import { Agent } from './agent'
 import { AutoAgv } from './AutoAgv'
-import { Agv } from './agv'
 
 export class Graph {
   public nodes: Node2D[][]
@@ -12,7 +11,6 @@ export class Graph {
   public busy: number[][] = []
   public pathPos: Position[]
   private autoAgvs!: Set<AutoAgv>
-  private agv!: Agv
 
   constructor(
     width: number,
@@ -33,16 +31,14 @@ export class Graph {
     for (let i = 0; i < width; i++) {
       for (let j = 0; j < height; j++) {
         for (let k = 0; k < danhsachke[i][j].length; k++) {
-          let nutke = danhsachke[i][j][k]
+          const nutke = danhsachke[i][j][k]
           this.nodes[i][j].setNeighbor(this.nodes[nutke.x][nutke.y])
         }
       }
     }
-    for (let p of pathPos) {
-      this.nodes[p.x][p.y].setState(StateOfNode2D.EMPTY)
+    for (const path of pathPos) {
+      this.nodes[path.x][path.y].setState(StateOfNode2D.EMPTY)
     }
-    // console.log(this.nodes);
-
     this.busy = new Array(52)
     for (let i = 0; i < 52; i++) {
       this.busy[i] = new Array(28)
@@ -64,13 +60,9 @@ export class Graph {
     return this.autoAgvs
   }
 
-  public setMAgv(agv: Agv) {
-    this.agv = agv
-  }
-
   public setAgents(agents: Agent[]): void {
-    for (let p of this.pathPos) {
-      this.nodes[p.x][p.y].setState(StateOfNode2D.EMPTY)
+    for (const path of this.pathPos) {
+      this.nodes[path.x][path.y].setState(StateOfNode2D.EMPTY)
     }
     this.busy = new Array(52)
     for (let i = 0; i < 52; i++) {
@@ -87,7 +79,7 @@ export class Graph {
   }
 
   public updateState(): void {
-    let cur = new Array(52)
+    const cur = new Array(52)
     for (let i = 0; i < 52; i++) {
       cur[i] = new Array(28)
       for (let j = 0; j < 28; j++) {
@@ -125,8 +117,8 @@ export class Graph {
   }
 
   public removeAgent(agent: Agent): void {
-    let i = Math.floor(agent.x / 32)
-    let j = Math.floor(agent.y / 32)
+    const i = Math.floor(agent.x / 32)
+    const j = Math.floor(agent.y / 32)
     if (!this.nodes[i]?.[j]) return
     this.nodes[i][j].setState(StateOfNode2D.EMPTY)
     this.busy[i][j] = 0
@@ -154,7 +146,6 @@ export class Graph {
         astar_h[i][j] = 0
       }
     }
-    let lengthOfPath: number = 1
     /**
      * Thuat toan
      */
@@ -215,7 +206,6 @@ export class Graph {
             } else {
               astar_g[neighbor.x][neighbor.y] = tempG
               openSet.push(neighbor)
-              lengthOfPath++
             }
             astar_h[neighbor.x][neighbor.y] = this.heuristic(neighbor, end)
             astar_f[neighbor.x][neighbor.y] =
